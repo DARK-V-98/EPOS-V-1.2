@@ -4,25 +4,25 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 240 5% 96%;
     --foreground: 240 10% 3.9%;
  
-    --card: 0 0% 100%;
+    --card: 240 0% 100%;
     --card-foreground: 240 10% 3.9%;
  
-    --popover: 0 0% 100%;
+    --popover: 240 0% 100%;
     --popover-foreground: 240 10% 3.9%;
  
     --primary: 0 72.2% 50.6%;
     --primary-foreground: 0 85.7% 97.3%;
  
-    --secondary: 0 0% 96.1%;
+    --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
  
-    --muted: 0 0% 96.1%;
+    --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
  
-    --accent: 0 0% 96.1%;
+    --accent: 240 4.8% 95.9%;
     --accent-foreground: 240 5.9% 10%;
  
     --destructive: 0 84.2% 60.2%;
@@ -34,20 +34,15 @@
     --warning: 47.9 95.8% 53.1%;
     --warning-foreground: 240 5.9% 10%;
  
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
     --ring: 0 72.2% 50.6%;
  
     --radius: 0.75rem;
 
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 240 3.8% 46.1%;
-    --sidebar-primary: 0 72.2% 50.6%;
-    --sidebar-primary-foreground: 0 85.7% 97.3%;
-    --sidebar-accent: 0 0% 96.1%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 0 0% 89.8%;
-    --sidebar-ring: 0 72.2% 50.6%;
 
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(0 72% 51%) 0%, hsl(0 72% 60%) 100%);
@@ -103,12 +98,7 @@
 
     --sidebar-background: 240 10% 3.9%;
     --sidebar-foreground: 240 5% 64.9%;
-    --sidebar-primary: 0 72.2% 50.6%;
-    --sidebar-primary-foreground: 0 85.7% 97.3%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 0 72.2% 50.6%;
   }
 }
  
@@ -128,7 +118,7 @@
 
 @layer components {
   .glass-card {
-    @apply bg-card border border-border rounded-xl;
+    @apply bg-card/60 backdrop-blur-lg border border-border/30 rounded-xl;
     box-shadow: var(--shadow-card);
   }
 
@@ -153,19 +143,19 @@
   }
 
   .nav-link {
-    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground transition-all duration-200;
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground transition-all duration-200;
   }
 
   .nav-link:hover {
-    @apply bg-secondary text-foreground;
+    @apply bg-accent text-accent-foreground;
   }
 
   .nav-link.active {
-    @apply bg-primary/10 text-primary;
+    @apply bg-primary/10 text-primary font-medium;
   }
 
   .input-field {
-    @apply w-full px-4 py-3 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200;
+    @apply w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200;
   }
 
   .btn-primary {
@@ -209,6 +199,16 @@
 
   .badge-primary {
     @apply bg-primary/20 text-primary;
+  }
+
+  .stretched-link::after {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1;
+    content: "";
   }
 }
 @layer utilities {
