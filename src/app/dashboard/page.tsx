@@ -13,6 +13,9 @@ import { SalesChart } from '@/components/dashboard/SalesChart';
 import { TopProducts } from '@/components/dashboard/TopProducts';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
 import { LowStockAlert } from '@/components/dashboard/LowStockAlert';
+import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import { redirect } from 'next/navigation';
 
 const stats = [
   {
@@ -64,7 +67,37 @@ const stats = [
   },
 ];
 
+interface UserProfile {
+  firstName: string;
+  lastName: string;
+  roleId: string;
+}
+
 export default function Dashboard() {
+  const { user, isUserLoading } = useUser();
+  const firestore = useFirestore();
+
+  const userDocRef = useMemoFirebase(() => {
+    if (!user) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [firestore, user]);
+
+  const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userDocRef);
+
+  if (!isUserLoading && userProfile && userProfile.roleId === 'developer') {
+    redirect('/dashboard/developer');
+  }
+
+  const getGreeting = () => {
+    const hours = new Date().getHours();
+    if (hours < 12) return 'Good Morning';
+    if (hours < 18) return 'Good Afternoon';
+    return 'Good Evening';
+  }
+
+  const displayName = userProfile ? `${userProfile.firstName} ${userProfile.lastName}`.trim() : 'Back';
+  const roleDisplay = userProfile ? userProfile.roleId.charAt(0).toUpperCase() + userProfile.roleId.slice(1) : 'User';
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -75,7 +108,7 @@ export default function Dashboard() {
             animate={{ opacity: 1, y: 0 }}
             className="text-2xl sm:text-3xl font-display font-bold"
           >
-            Dashboard
+            {getGreeting()}, {isProfileLoading ? '...' : displayName}!
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: -10 }}
@@ -83,7 +116,7 @@ export default function Dashboard() {
             transition={{ delay: 0.1 }}
             className="text-muted-foreground mt-1"
           >
-            Welcome back! Here's what's happening with your inventory.
+            Welcome to your <span className="font-semibold text-primary">{roleDisplay}</span> Dashboard. Here's what's happening.
           </motion.p>
         </div>
         <motion.div
