@@ -13,16 +13,20 @@ import {
   Chrome
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/firebase';
-import { initiateEmailSignIn } from '@/firebase/non-blocking-login';
+import { useAuth, useFirestore } from '@/firebase';
+import { initiateEmailSignIn, initiateGoogleSignIn } from '@/firebase/non-blocking-login';
+import { getDoc, doc } from 'firebase/firestore';
+import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const router = useRouter();
   const auth = useAuth();
+  const firestore = useFirestore();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     const formData = new FormData(e.currentTarget as HTMLFormElement);
@@ -31,10 +35,44 @@ export default function Login() {
 
     try {
       await initiateEmailSignIn(auth, email, password);
-      router.push('/dashboard');
+      // Non-blocking, will be redirected by auth listener in layout or provider
     } catch (error) {
       console.error(error);
       setIsLoading(false);
+    }
+  };
+  
+  const handleGoogleSignIn = async () => {
+    setIsGoogleLoading(true);
+    try {
+      const userCredential = await initiateGoogleSignIn(auth);
+      if (userCredential && userCredential.user) {
+        const user = userCredential.user;
+        const userRef = doc(firestore, "users", user.uid);
+        const userDoc = await getDoc(userRef);
+
+        if (!userDoc.exists()) {
+          // New user, create a document
+          await setDocumentNonBlocking(userRef, {
+            id: user.uid,
+            firstName: user.displayName?.split(' ')[0] || '',
+            lastName: user.displayName?.split(' ')[1] || '',
+            email: user.email,
+            roleId: 'user', // Default role
+            createdAt: new Date().toISOString(),
+            lastLogin: new Date().toISOString(),
+          }, { merge: true });
+        } else {
+           // Existing user, update last login
+           await setDocumentNonBlocking(userRef, {
+            lastLogin: new Date().toISOString(),
+           }, { merge: true });
+        }
+        router.push('/dashboard');
+      }
+    } catch (error) {
+      console.error("Google sign-in error", error);
+      setIsGoogleLoading(false);
     }
   };
 
@@ -68,7 +106,7 @@ export default function Login() {
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleEmailSubmit} className="space-y-5">
             <div>
               <label className="block text-sm font-medium mb-2">Email Address</label>
               <div className="relative">
@@ -149,9 +187,19 @@ export default function Login() {
 
           {/* Social Login */}
           <div className="grid grid-cols-2 gap-4">
-            <button className="btn-secondary">
-              <Chrome className="w-5 h-5" />
-              <span>Google</span>
+            <button className="btn-secondary" onClick={handleGoogleSignIn} disabled={isGoogleLoading}>
+              {isGoogleLoading ? (
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                    className="w-5 h-5 border-2 border-foreground/30 border-t-foreground rounded-full"
+                  />
+                ) : (
+                  <>
+                    <Chrome className="w-5 h-5" />
+                    <span>Google</span>
+                  </>
+                )}
             </button>
             <button className="btn-secondary">
               <Github className="w-5 h-5" />
