@@ -5,7 +5,8 @@ import {
   UserPlus, 
   FileText, 
   Briefcase,
-  Users
+  Users,
+  ArrowRight
 } from 'lucide-react';
 import Link from 'next/link';
 import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
@@ -74,7 +75,7 @@ export default function HomePage() {
   ];
 
   if (isLoading) {
-      return <div>Loading...</div> // Or a proper skeleton loader
+      return <div className="min-h-screen flex items-center justify-center">Loading...</div> // Or a proper skeleton loader
   }
 
   return (
@@ -89,29 +90,57 @@ export default function HomePage() {
         </motion.div>
 
         <motion.div 
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ staggerChildren: 0.1 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl"
+            initial="initial"
+            animate="animate"
+            variants={{
+                animate: {
+                    transition: {
+                        staggerChildren: 0.1,
+                    },
+                },
+            }}
         >
             {menuOptions.map((item) => (
             <motion.div
                 key={item.name}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                whileHover={!item.disabled ? { scale: 1.05, y: -5 } : {}}
+                variants={{
+                    initial: { opacity: 0, y: 20 },
+                    animate: { opacity: 1, y: 0 },
+                }}
             >
-                <div className={`relative glass-card p-6 text-center h-full flex flex-col justify-between ${item.disabled ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-xl'}`}>
+                <div className={`
+                    group relative glass-card p-6 h-full flex flex-col justify-between 
+                    transition-all duration-300
+                    ${item.disabled 
+                        ? 'opacity-50 cursor-not-allowed bg-secondary/30' 
+                        : 'hover:border-primary/50 hover:bg-primary/5 hover:-translate-y-1 hover:shadow-xl'
+                    }
+                `}>
                     <div>
-                        <div className={`inline-block p-4 rounded-xl bg-primary/10 mb-4`}>
-                            <item.icon className={`w-8 h-8 text-primary`} />
+                        <div className={`
+                            inline-block p-3 rounded-lg bg-primary/10 mb-4
+                            transition-colors duration-300
+                            ${!item.disabled ? 'group-hover:bg-primary/20' : ''}
+                        `}>
+                            <item.icon className={`w-7 h-7 text-primary`} />
                         </div>
-                        <h2 className="text-lg font-display font-semibold mb-2">{item.name}</h2>
+                        <h2 className="text-lg font-display font-semibold mb-2 text-foreground">{item.name}</h2>
                         <p className="text-sm text-muted-foreground">{item.description}</p>
                     </div>
-                    {item.disabled ? (
-                        <p className="text-xs text-destructive mt-4">{item.disabledText}</p>
-                    ) : (
+                    
+                    <div className="mt-4">
+                        {item.disabled ? (
+                            <p className="text-xs text-destructive mt-2">{item.disabledText}</p>
+                        ) : (
+                            <div className="flex items-center text-primary font-medium text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                <span>Continue</span>
+                                <ArrowRight className="w-4 h-4 ml-2 transition-transform duration-300 group-hover:translate-x-1" />
+                            </div>
+                        )}
+                    </div>
+
+                    {!item.disabled && (
                          <Link href={item.href} className="stretched-link" />
                     )}
                 </div>
