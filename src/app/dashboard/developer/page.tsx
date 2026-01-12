@@ -1,56 +1,51 @@
 'use client';
 import { motion } from 'framer-motion';
-import { Code, Database, Bug, Users, GitBranch } from 'lucide-react';
-import { StatCard } from '@/components/dashboard/StatCard';
-import { useUser } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection } from 'firebase/firestore';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import { MoreHorizontal, Edit, Trash2 } from 'lucide-react';
 
-const devStats = [
-  {
-    icon: Code,
-    label: 'API Endpoints',
-    value: '42',
-    changeLabel: '2 new this week',
-    variant: 'primary' as const,
-  },
-  {
-    icon: Database,
-    label: 'Firestore Reads',
-    value: '1.2M',
-    change: 3.2,
-    changeLabel: 'in last 24h',
-    variant: 'success' as const,
-  },
-  {
-    icon: Bug,
-    label: "Open Issues",
-    value: '12',
-    change: -2,
-    changeLabel: 'vs last week',
-    variant: 'warning' as const,
-  },
-  {
-    icon: Users,
-    label: 'Active Users',
-    value: '1,287',
-    change: 12.1,
-    changeLabel: 'in last 24h',
-    variant: 'default' as const,
-  },
-  {
-    icon: GitBranch,
-    label: 'Open PRs',
-    value: '8',
-    changeLabel: '3 awaiting review',
-    variant: 'primary' as const,
-  },
-];
+interface User {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  businessName: string;
+  roleId: string;
+  plan: string;
+  createdAt: string;
+}
 
 export default function DeveloperDashboard() {
-  const { user } = useUser();
+  const firestore = useFirestore();
+  const usersCollectionRef = useMemoFirebase(
+    () => collection(firestore, 'users'),
+    [firestore],
+  );
+
+  const {
+    data: users,
+    isLoading: usersLoading,
+    error: usersError,
+  } = useCollection<User>(usersCollectionRef);
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <motion.h1
@@ -58,7 +53,7 @@ export default function DeveloperDashboard() {
             animate={{ opacity: 1, y: 0 }}
             className="text-2xl sm:text-3xl font-display font-bold"
           >
-            Developer Dashboard
+            Developer Panel
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: -10 }}
@@ -66,57 +61,97 @@ export default function DeveloperDashboard() {
             transition={{ delay: 0.1 }}
             className="text-muted-foreground mt-1"
           >
-            Welcome, {user?.displayName || 'Developer'}. System status and metrics below.
+            Manage users and companies registered in the system.
           </motion.p>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-        {devStats.map((stat, index) => (
-          <motion.div
-            key={stat.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
-          >
-            <StatCard {...stat} />
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Other developer-specific components would go here */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="glass-card p-6">
-          <h2 className="font-display font-semibold text-lg mb-4">System Logs</h2>
-          <div className="h-64 bg-gray-900 text-white font-mono text-xs p-4 rounded-lg overflow-y-scroll">
-            <p><span className="text-green-400">[INFO]</span> User 'admin@example.com' logged in.</p>
-            <p><span className="text-yellow-400">[WARN]</span> High latency detected on /api/products.</p>
-            <p><span className="text-red-400">[ERROR]</span> Failed to connect to payment gateway.</p>
-            <p><span className="text-green-400">[INFO]</span> New user registered: 'dev@example.com'.</p>
-          </div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="glass-card overflow-hidden"
+      >
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Company</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Plan</TableHead>
+                <TableHead>Registered</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {usersLoading && (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center">
+                    Loading users...
+                  </TableCell>
+                </TableRow>
+              )}
+              {usersError && (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center text-destructive">
+                    Error loading users.
+                  </TableCell>
+                </TableRow>
+              )}
+              {users && users.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center">
+                    No users found.
+                  </TableCell>
+                </TableRow>
+              )}
+              {users?.map((user) => (
+                <TableRow key={user.id}>
+                  <TableCell>
+                    <div className="font-medium">
+                      {user.firstName} {user.lastName}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {user.email}
+                    </div>
+                  </TableCell>
+                  <TableCell>{user.businessName}</TableCell>
+                  <TableCell>
+                    <Badge variant={user.roleId === 'admin' || user.roleId === 'developer' ? 'default' : 'secondary'}>
+                        {user.roleId.charAt(0).toUpperCase() + user.roleId.slice(1)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{user.plan.charAt(0).toUpperCase() + user.plan.slice(1)}</TableCell>
+                  <TableCell>
+                    {new Date(user.createdAt).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Actions</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem>
+                          <Edit className="mr-2 h-4 w-4" />
+                          Edit User
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive">
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete User
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
-        <div className="glass-card p-6">
-          <h2 className="font-display font-semibold text-lg mb-4">Deployment Status</h2>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="font-medium">Production</p>
-                <p className="text-sm text-muted-foreground">v1.2.3 - #a1b2c3d</p>
-              </div>
-              <div className="badge badge-success">Live</div>
-            </div>
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="font-medium">Staging</p>
-                <p className="text-sm text-muted-foreground">v1.3.0-rc1 - #e4f5g6h</p>
-              </div>
-              <div className="badge badge-primary">Deploying...</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
+      </motion.div>
     </div>
   );
 }

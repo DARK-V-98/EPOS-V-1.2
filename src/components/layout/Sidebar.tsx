@@ -6,7 +6,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard,
   Package,
-  FolderTree,
   Warehouse,
   Truck,
   ShoppingCart,
@@ -21,9 +20,10 @@ import {
   CreditCard,
   Shield,
   Sparkles,
-  Menu,
-  X
+  Code
 } from 'lucide-react';
+import { useAuth, useDoc, useFirestore, useMemoFirebase, useUser } from '@/firebase';
+import { doc } from 'firebase/firestore';
 
 interface NavItem {
   icon: React.ElementType;
@@ -75,9 +75,29 @@ const bottomNavItems: NavItem[] = [
   { icon: Settings, label: 'Settings', path: '/dashboard/settings' },
 ];
 
+interface UserProfile {
+    firstName?: string;
+    lastName?: string;
+    roleId?: string;
+}
+
 export function Sidebar({ isMobileOpen, setIsMobileOpen }: { isMobileOpen: boolean, setIsMobileOpen: (open: boolean) => void }) {
   const pathname = usePathname();
   const [expandedItems, setExpandedItems] = useState<string[]>(['Products']);
+  const auth = useAuth();
+  const { user } = useUser();
+  const firestore = useFirestore();
+
+  const userDocRef = useMemoFirebase(() => {
+    if (!user) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [firestore, user]);
+
+  const { data: userProfile } = useDoc<UserProfile>(userDocRef);
+
+  const handleLogout = () => {
+    auth.signOut();
+  };
 
   const toggleExpand = (label: string) => {
     setExpandedItems(prev => 
@@ -89,7 +109,6 @@ export function Sidebar({ isMobileOpen, setIsMobileOpen }: { isMobileOpen: boole
 
   const isActive = (path?: string) => {
     if (!path) return false;
-    // Special case for dashboard
     if (path === '/dashboard') {
       return pathname === path;
     }
@@ -185,7 +204,7 @@ export function Sidebar({ isMobileOpen, setIsMobileOpen }: { isMobileOpen: boole
       </div>
 
       {/* Main Navigation */}
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto scrollbar-thin">
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-3">
           Main Menu
         </p>
@@ -201,15 +220,24 @@ export function Sidebar({ isMobileOpen, setIsMobileOpen }: { isMobileOpen: boole
 
       {/* User Profile */}
       <div className="p-4 border-t border-border">
+        {(userProfile?.roleId === 'admin' || userProfile?.roleId === 'developer') && (
+            <Link href="/dashboard/developer" className="nav-link mb-2">
+                <Code className="w-5 h-5" />
+                <span className="font-medium">Developer Panel</span>
+            </Link>
+        )}
         <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary">
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-            <span className="font-semibold text-primary">JD</span>
+            <span className="font-semibold text-primary">
+                {userProfile?.firstName?.[0]}
+                {userProfile?.lastName?.[0]}
+            </span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-medium text-sm text-foreground truncate">John Doe</p>
-            <p className="text-xs text-muted-foreground truncate">Admin</p>
+            <p className="font-medium text-sm text-foreground truncate">{userProfile?.firstName} {userProfile?.lastName}</p>
+            <p className="text-xs text-muted-foreground truncate">{userProfile?.roleId}</p>
           </div>
-          <button className="btn-ghost p-2">
+          <button onClick={handleLogout} className="btn-ghost p-2">
             <LogOut className="w-4 h-4" />
           </button>
         </div>

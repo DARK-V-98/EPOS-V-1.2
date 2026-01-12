@@ -15,7 +15,6 @@ import { RecentActivity } from '@/components/dashboard/RecentActivity';
 import { LowStockAlert } from '@/components/dashboard/LowStockAlert';
 import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
-import { redirect } from 'next/navigation';
 
 const stats = [
   {
@@ -74,7 +73,7 @@ interface UserProfile {
 }
 
 export default function Dashboard() {
-  const { user, isUserLoading } = useUser();
+  const { user } = useUser();
   const firestore = useFirestore();
 
   const userDocRef = useMemoFirebase(() => {
@@ -83,10 +82,6 @@ export default function Dashboard() {
   }, [firestore, user]);
 
   const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userDocRef);
-
-  if (!isUserLoading && userProfile && userProfile.roleId === 'developer') {
-    redirect('/dashboard/developer');
-  }
 
   const getGreeting = () => {
     const hours = new Date().getHours();
