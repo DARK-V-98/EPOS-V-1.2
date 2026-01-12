@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useAuth, useDoc, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { doc } from 'firebase/firestore';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 interface NavItem {
   icon: React.ElementType;
@@ -237,6 +238,7 @@ export function Sidebar({ isMobileOpen, setIsMobileOpen }: { isMobileOpen: boole
             <p className="font-medium text-sm text-foreground truncate">{userProfile?.firstName} {userProfile?.lastName}</p>
             <p className="text-xs text-muted-foreground truncate">{userProfile?.roleId?.charAt(0).toUpperCase()}{userProfile?.roleId?.slice(1)}</p>
           </div>
+          <ThemeToggle />
           <button onClick={handleLogout} className="btn-ghost p-2">
             <LogOut className="w-4 h-4" />
           </button>
