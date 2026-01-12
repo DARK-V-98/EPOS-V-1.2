@@ -36,7 +36,7 @@ export function SalesChart() {
             <span className="text-sm text-muted-foreground">Sales</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-secondary-foreground" />
+            <div className="w-3 h-3 rounded-full bg-success" />
             <span className="text-sm text-muted-foreground">Purchases</span>
           </div>
         </div>
@@ -51,8 +51,8 @@ export function SalesChart() {
                 <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
               </linearGradient>
               <linearGradient id="purchasesGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="hsl(var(--secondary-foreground))" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="hsl(var(--secondary-foreground))" stopOpacity={0} />
+                <stop offset="5%" stopColor="hsl(var(--success))" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="hsl(var(--success))" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -68,7 +68,7 @@ export function SalesChart() {
               fontSize={12}
               tickLine={false}
               axisLine={false}
-              tickFormatter={(value) => `$${"$"}{value / 1000}k`}
+              tickFormatter={(value) => `$${value / 1000}k`}
             />
             <Tooltip
               contentStyle={{
@@ -77,7 +77,7 @@ export function SalesChart() {
                 borderRadius: 'var(--radius)',
               }}
               labelStyle={{ color: 'hsl(var(--foreground))' }}
-              formatter={(value: number | undefined) => value ? [`$${"$"}{value.toLocaleString()}`, undefined] : ['', undefined]}
+              formatter={(value: number | undefined) => value ? [`$${value.toLocaleString()}`, undefined] : ['', undefined]}
             />
             <Area
               type="monotone"
@@ -89,7 +89,7 @@ export function SalesChart() {
             <Area
               type="monotone"
               dataKey="purchases"
-              stroke="hsl(var(--secondary-foreground))"
+              stroke="hsl(var(--success))"
               strokeWidth={2}
               fill="url(#purchasesGradient)"
             />

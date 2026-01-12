@@ -191,7 +191,7 @@ export function Sidebar({ isMobileOpen, setIsMobileOpen }: { isMobileOpen: boole
   const sidebarContent = (
     <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className="p-6 border-b border-border">
+      <div className="p-6 border-b border-sidebar-border">
         <Link href="/dashboard" className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
             <Sparkles className="w-5 h-5 text-primary-foreground" />
@@ -226,7 +226,7 @@ export function Sidebar({ isMobileOpen, setIsMobileOpen }: { isMobileOpen: boole
                 <span className="font-medium">Developer Panel</span>
             </Link>
         )}
-        <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary">
+        <div className="flex items-center gap-3 p-3 rounded-lg bg-sidebar-accent">
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
             <span className="font-semibold text-primary">
                 {userProfile?.firstName?.[0]}
@@ -235,7 +235,7 @@ export function Sidebar({ isMobileOpen, setIsMobileOpen }: { isMobileOpen: boole
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-medium text-sm text-foreground truncate">{userProfile?.firstName} {userProfile?.lastName}</p>
-            <p className="text-xs text-muted-foreground truncate">{userProfile?.roleId}</p>
+            <p className="text-xs text-muted-foreground truncate">{userProfile?.roleId?.charAt(0).toUpperCase()}{userProfile?.roleId?.slice(1)}</p>
           </div>
           <button onClick={handleLogout} className="btn-ghost p-2">
             <LogOut className="w-4 h-4" />
@@ -263,7 +263,7 @@ export function Sidebar({ isMobileOpen, setIsMobileOpen }: { isMobileOpen: boole
       {/* Sidebar */}
       <aside className={`
         fixed lg:static inset-y-0 left-0 z-50
-        w-72 bg-card border-r border-border
+        w-72 bg-sidebar border-r border-sidebar-border
         transform transition-transform duration-300 lg:transform-none
         ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
