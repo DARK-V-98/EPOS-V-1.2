@@ -15,6 +15,7 @@ import { RecentActivity } from '@/components/dashboard/RecentActivity';
 import { LowStockAlert } from '@/components/dashboard/LowStockAlert';
 import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
+import { useState, useEffect } from 'react';
 
 const stats = [
   {
@@ -75,6 +76,7 @@ interface UserProfile {
 export default function Dashboard() {
   const { user } = useUser();
   const firestore = useFirestore();
+  const [greeting, setGreeting] = useState('');
 
   const userDocRef = useMemoFirebase(() => {
     if (!user) return null;
@@ -83,12 +85,16 @@ export default function Dashboard() {
 
   const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userDocRef);
 
-  const getGreeting = () => {
-    const hours = new Date().getHours();
-    if (hours < 12) return 'Good Morning';
-    if (hours < 18) return 'Good Afternoon';
-    return 'Good Evening';
-  }
+  useEffect(() => {
+    const getGreeting = () => {
+      const hours = new Date().getHours();
+      if (hours < 12) return 'Good Morning';
+      if (hours < 18) return 'Good Afternoon';
+      return 'Good Evening';
+    }
+    setGreeting(getGreeting());
+  }, []);
+  
 
   const displayName = userProfile ? `${userProfile.firstName} ${userProfile.lastName}`.trim() : 'Back';
   const roleDisplay = userProfile ? userProfile.roleId.charAt(0).toUpperCase() + userProfile.roleId.slice(1) : 'User';
@@ -103,7 +109,7 @@ export default function Dashboard() {
             animate={{ opacity: 1, y: 0 }}
             className="text-2xl sm:text-3xl font-display font-bold"
           >
-            {getGreeting()}, {isProfileLoading ? '...' : displayName}!
+            {greeting}, {isProfileLoading ? '...' : displayName}!
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: -10 }}
