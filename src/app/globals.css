@@ -22,17 +22,17 @@
     --muted: 0 0% 94%;
     --muted-foreground: 0 0% 40%;
 
-    --accent: 0 0% 96%;
-    --accent-foreground: 0 0% 0%;
+    --accent: 0 72% 51%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 142 76% 36%;
+    --success: 0 72% 51%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 0%;
+    --warning: 0 72% 51%;
+    --warning-foreground: 0 0% 100%;
 
     --border: 0 0% 90%;
     --input: 0 0% 96%;
@@ -53,8 +53,8 @@
     --gradient-primary: linear-gradient(135deg, hsl(0 72% 51%) 0%, hsl(0 72% 60%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(0 0% 98%) 100%);
     --gradient-glow: radial-gradient(ellipse at 50% 0%, hsl(0 72% 51% / 0.1) 0%, transparent 60%);
-    --gradient-success: linear-gradient(135deg, hsl(142 76% 36%) 0%, hsl(160 70% 42%) 100%);
-    --gradient-warning: linear-gradient(135deg, hsl(38 92% 50%) 0%, hsl(28 92% 50%) 100%);
+    --gradient-success: linear-gradient(135deg, hsl(0 72% 51%) 0%, hsl(0 72% 55%) 100%);
+    --gradient-warning: linear-gradient(135deg, hsl(0 72% 51%) 0%, hsl(0 72% 55%) 100%);
     --gradient-destructive: linear-gradient(135deg, hsl(0 72% 51%) 0%, hsl(350 80% 55%) 100%);
 
     /* Shadows */
@@ -85,11 +85,17 @@
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
  
-    --accent: 217.2 32.6% 17.5%;
+    --accent: 0 72.2% 50.6%;
     --accent-foreground: 0 0% 98%;
  
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
+
+    --success: 0 72.2% 50.6%;
+    --success-foreground: 0 0% 98%;
+
+    --warning: 0 72.2% 50.6%;
+    --warning-foreground: 0 0% 98%;
  
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
