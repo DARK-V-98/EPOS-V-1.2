@@ -84,7 +84,7 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center mb-12"
         >
-            <h1 className="text-4xl font-display font-bold">Welcome to StockFlow</h1>
+            <h1 className="text-4xl font-display font-bold">Welcome to EPOS V 1.2</h1>
             <p className="text-muted-foreground mt-2">Please select an option to continue.</p>
         </motion.div>
 

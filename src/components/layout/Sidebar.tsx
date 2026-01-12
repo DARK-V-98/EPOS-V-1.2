@@ -203,7 +203,7 @@ export function Sidebar({ isMobileOpen, setIsMobileOpen }: { isMobileOpen: boole
             <Sparkles className="w-5 h-5 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="font-display font-bold text-lg text-foreground">StockFlow</h1>
+            <h1 className="font-display font-bold text-lg text-foreground">EPOS V 1.2</h1>
             <p className="text-xs text-muted-foreground">Inventory Pro</p>
           </div>
         </Link>

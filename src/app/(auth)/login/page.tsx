@@ -102,7 +102,7 @@ export default function Login() {
               <Sparkles className="w-6 h-6 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="font-display font-bold text-xl">StockFlow</h1>
+              <h1 className="font-display font-bold text-xl">EPOS V 1.2</h1>
               <p className="text-xs text-muted-foreground">Inventory Pro</p>
             </div>
           </Link>

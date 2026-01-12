@@ -89,7 +89,7 @@ export default function Register() {
               <span className="gradient-text">today</span>
             </h2>
             <p className="text-lg text-muted-foreground mb-8">
-              Join thousands of businesses that trust StockFlow to manage their 
+              Join thousands of businesses that trust EPOS V 1.2 to manage their 
               inventory efficiently and grow their revenue.
             </p>
             
@@ -135,7 +135,7 @@ export default function Register() {
               <Sparkles className="w-6 h-6 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="font-display font-bold text-xl">StockFlow</h1>
+              <h1 className="font-display font-bold text-xl">EPOS V 1.2</h1>
               <p className="text-xs text-muted-foreground">Inventory Pro</p>
             </div>
           </Link>

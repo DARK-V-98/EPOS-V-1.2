@@ -92,7 +92,7 @@ export default function RegisterBusinessPage() {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-display font-bold">Register Your Business</h1>
           <p className="text-muted-foreground">
-            Create a company profile to start using StockFlow.
+            Create a company profile to start using EPOS V 1.2.
           </p>
         </div>
 
