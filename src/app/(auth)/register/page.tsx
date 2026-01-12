@@ -13,8 +13,8 @@ import {
   Check
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useAuth, useFirestore, initiateEmailSignUp, setDocumentNonBlocking } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useAuth, useFirestore, initiateEmailSignUp } from '@/firebase';
+import { doc, setDoc } from 'firebase/firestore';
 
 export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
@@ -50,7 +50,7 @@ export default function Register() {
         
         const userRef = doc(firestore, "users", user.uid);
         
-        await setDocumentNonBlocking(userRef, {
+        await setDoc(userRef, {
           id: user.uid,
           firstName: firstName || '',
           lastName: lastName || '',

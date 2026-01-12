@@ -1,7 +1,7 @@
 'use client';
 import { motion } from 'framer-motion';
 import { useUser, useDoc, useCollection, useFirestore, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
-import { doc, collection, query, where, deleteDoc } from 'firebase/firestore';
+import { doc, collection, query, where, getDoc, getDocs, deleteDoc } from 'firebase/firestore';
 import {
   Table,
   TableBody,
@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, X, Building, Users, Mail, Clock } from 'lucide-react';
+import { Check, X, Mail, Clock } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -74,9 +74,19 @@ export default function CompanyManagementPage() {
 
     try {
         if (newStatus === 'approved') {
-            // Update user's companyId and role
             const userToUpdateRef = doc(firestore, 'users', request.userId);
-            await updateDocumentNonBlocking(userToUpdateRef, { companyId: companyId, roleId: 'staff' });
+            const userToUpdateDoc = await getDoc(userToUpdateRef);
+            
+            if (userToUpdateDoc.exists()) {
+                const userData = userToUpdateDoc.data();
+                // Protect the developer role from being overwritten
+                if (userData.roleId !== 'developer') {
+                    await updateDocumentNonBlocking(userToUpdateRef, { companyId: companyId, roleId: 'staff' });
+                } else {
+                    // If user is a developer, just add them to the company
+                    await updateDocumentNonBlocking(userToUpdateRef, { companyId: companyId });
+                }
+            }
         }
         
         // Update the request status

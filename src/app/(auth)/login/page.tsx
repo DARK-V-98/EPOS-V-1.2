@@ -13,8 +13,8 @@ import {
   Chrome
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useAuth, useFirestore, initiateEmailSignIn, initiateGoogleSignIn, setDocumentNonBlocking } from '@/firebase';
-import { getDoc, doc } from 'firebase/firestore';
+import { useAuth, useFirestore, initiateEmailSignIn, initiateGoogleSignIn } from '@/firebase';
+import { getDoc, doc, setDoc } from 'firebase/firestore';
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -26,7 +26,8 @@ export default function Login() {
 
   const handleSuccessfulLogin = (user) => {
     const userRef = doc(firestore, "users", user.uid);
-    setDocumentNonBlocking(userRef, { lastLogin: new Date().toISOString() }, { merge: true });
+    // Note: Using setDoc with merge:true is fine for non-blocking updates.
+    setDoc(userRef, { lastLogin: new Date().toISOString() }, { merge: true });
     router.push('/home');
   }
 
@@ -62,7 +63,7 @@ export default function Login() {
           const [firstName, ...lastNameParts] = (user.displayName || '').split(' ');
           const lastName = lastNameParts.join(' ');
           // New user, create a document
-          await setDocumentNonBlocking(userRef, {
+          await setDoc(userRef, {
             id: user.uid,
             firstName: firstName || '',
             lastName: lastName || '',
@@ -73,7 +74,7 @@ export default function Login() {
           }, { merge: true });
         } else {
            // Existing user, just update last login
-           await setDocumentNonBlocking(userRef, {
+           await setDoc(userRef, {
             lastLogin: new Date().toISOString(),
            }, { merge: true });
         }

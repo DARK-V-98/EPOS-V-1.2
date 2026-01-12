@@ -1,20 +1,18 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { motion } from 'framer-motion';
 import { Building, Info, FileCheck, Clock } from 'lucide-react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { collection, doc, addDoc, query, where, getDocs } from 'firebase/firestore';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { collection, doc, addDoc, query, where, getDocs, updateDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { toast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const businessNameSchema = z.object({
   name: z.string().min(2, 'Business name must be at least 2 characters.'),
@@ -25,31 +23,28 @@ export default function RegisterBusinessPage() {
   const router = useRouter();
   const { user } = useUser();
   const firestore = useFirestore();
-  const [companyStatus, setCompanyStatus] = useState<'not_registered' | 'pending' | 'approved' | 'rejected'>('not_registered');
+  const [companyStatus, setCompanyStatus] = useState<'not_registered' | 'pending_details' | 'pending' | 'approved' | 'rejected'>('not_registered');
   const [companyId, setCompanyId] = useState<string | null>(null);
-
-  const companyQuery = useMemoFirebase(() => {
-    if (!user) return null;
-    return query(collection(firestore, 'companies'), where('ownerId', '==', user.uid));
-  }, [firestore, user]);
-
-  useDoc(companyQuery, {
-    onSuccess: (snapshot) => {
-      if (!snapshot.empty) {
-        const companyDoc = snapshot.docs[0];
-        setCompanyId(companyDoc.id);
-        const companyData = companyDoc.data();
-        if (companyData) {
-          setCompanyStatus(companyData.status || 'pending');
-        }
-      }
-    }
-  });
-
+  
   const form = useForm<BusinessNameFormData>({
     resolver: zodResolver(businessNameSchema),
     defaultValues: { name: '' },
   });
+
+  // Check for existing company registration
+   useEffect(() => {
+    if (!user) return;
+    const checkCompany = async () => {
+      const q = query(collection(firestore, 'companies'), where('ownerId', '==', user.uid));
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        const companyDoc = querySnapshot.docs[0];
+        setCompanyId(companyDoc.id);
+        setCompanyStatus(companyDoc.data().status);
+      }
+    };
+    checkCompany();
+  }, [user, firestore]);
 
   const onSubmit = async (data: BusinessNameFormData) => {
     if (!user) {
@@ -73,6 +68,10 @@ export default function RegisterBusinessPage() {
       if (!companyDocRef) {
         throw new Error('Could not create company document.');
       }
+      
+      // Update the user's role to 'admin' for their own company
+      const userRef = doc(firestore, 'users', user.uid);
+      await updateDoc(userRef, { roleId: 'admin' });
       
       router.push(`/home/register-business/${companyDocRef.id}/details`);
 
@@ -107,6 +106,16 @@ export default function RegisterBusinessPage() {
                  </p>
               </>
             )}
+             {companyStatus === 'pending_details' && (
+                 <>
+                    <Info className="w-12 h-12 text-primary mx-auto mb-4" />
+                    <h1 className="text-3xl font-display font-bold">Complete Your Registration</h1>
+                    <p className="text-muted-foreground mt-2">
+                    You have a pending registration. Please complete the business details.
+                    </p>
+                    <Link href={`/home/register-business/${companyId}/details`} className="btn-primary mt-6">Continue Registration</Link>
+              </>
+             )}
              {companyStatus === 'approved' && (
               <>
                 <FileCheck className="w-12 h-12 text-success mx-auto mb-4" />
