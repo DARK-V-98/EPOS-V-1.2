@@ -8,15 +8,29 @@ import {
   Users,
   ArrowRight,
   Code,
-  Wallet
+  Wallet,
+  LogOut,
+  User as UserIcon,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { useUser, useDoc, useFirestore, useMemoFirebase, useAuth } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface UserProfile {
+    firstName?: string;
+    lastName?: string;
     roleId?: string;
     companyId?: string;
 }
@@ -24,6 +38,7 @@ interface UserProfile {
 export default function HomePage() {
     const { user, isUserLoading } = useUser();
     const firestore = useFirestore();
+    const auth = useAuth();
     const router = useRouter();
 
     const userDocRef = useMemoFirebase(() => {
@@ -38,6 +53,12 @@ export default function HomePage() {
             router.push('/login');
         }
     }, [isUserLoading, user, router]);
+    
+    const handleLogout = () => {
+        auth.signOut().then(() => {
+            router.push('/login');
+        });
+    };
 
     const isLoading = isUserLoading || isProfileLoading;
     const isDeveloper = userProfile?.roleId === 'developer';
@@ -96,8 +117,47 @@ export default function HomePage() {
       return <div className="min-h-screen flex items-center justify-center">Loading...</div>
   }
 
+  const getInitials = () => {
+    const firstName = userProfile?.firstName || '';
+    const lastName = userProfile?.lastName || '';
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  };
+
+  const displayName = userProfile ? `${userProfile.firstName} ${userProfile.lastName}`.trim() : user?.email;
+  const roleDisplay = userProfile?.roleId ? userProfile.roleId.charAt(0).toUpperCase() + userProfile.roleId.slice(1) : 'User';
+
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-8">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-8 relative">
+        
+        <div className="absolute top-6 right-6">
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="flex items-center gap-3 h-auto p-2">
+                        <div className="text-right">
+                           <div className="font-semibold">{displayName}</div>
+                           <div className="text-xs text-muted-foreground">{roleDisplay}</div>
+                        </div>
+                        <Avatar>
+                            <AvatarImage src={user?.photoURL || ''} />
+                            <AvatarFallback>{getInitials()}</AvatarFallback>
+                        </Avatar>
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem>
+                        <UserIcon className="mr-2 h-4 w-4" />
+                        <span>Profile</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleLogout}>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>Log out</span>
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
+        
         <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
