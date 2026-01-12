@@ -13,7 +13,10 @@ service cloud.firestore {
     }
 
     function getRole() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roleId;
+      // Use exists() to handle cases where the user document might not exist yet.
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roleId
+        : '';
     }
 
     function isAdmin() {
@@ -25,18 +28,22 @@ service cloud.firestore {
     }
 
     // User Profile
+    // Developers should be able to manage all user profiles.
     match /users/{userId} {
       allow read, update: if isOwner(userId) || isAdmin() || isDeveloper();
       allow create: if isSignedIn();
       allow delete: if isAdmin() || isDeveloper();
     }
     
+    // Roles Collection
+    // Developers should be able to read and write roles.
     match /roles/{roleId} {
       allow read: if isSignedIn();
       allow write: if isAdmin() || isDeveloper();
     }
 
-    // Catch-all for other collections
+    // Catch-all for any other collections.
+    // This gives developers admin-level access to any other data.
     match /{document=**} {
       allow read, write: if isAdmin() || isDeveloper();
     }
