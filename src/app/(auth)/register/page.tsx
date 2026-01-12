@@ -81,7 +81,7 @@ export default function RegisterPage() {
           </div>
           <div className="grid gap-2">
             <Label>Plan Type</Label>
-            <RadioGroup defaultValue="trial" className="flex gap-4">
+            <RadioGroup defaultValue="trial" className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="free" id="free" />
                 <Label htmlFor="free" className="font-normal">Free</Label>
@@ -89,6 +89,18 @@ export default function RegisterPage() {
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="trial" id="trial" />
                 <Label htmlFor="trial" className="font-normal">14-day Pro Trial</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="monthly" id="monthly" />
+                <Label htmlFor="monthly" className="font-normal">Monthly Paid</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="yearly" id="yearly" />
+                <Label htmlFor="yearly" className="font-normal">Yearly Paid</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="lifetime" id="lifetime" />
+                <Label htmlFor="lifetime" className="font-normal">Lifetime Paid</Label>
               </div>
             </RadioGroup>
           </div>

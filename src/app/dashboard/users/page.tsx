@@ -7,8 +7,21 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { users, roles } from '@/lib/placeholder-data';
+import { cn } from '@/lib/utils';
 
 export default function UsersPage() {
+
+    const getRoleVariant = (role: string) => {
+        switch (role) {
+            case 'Developer':
+                return 'destructive';
+            case 'Admin':
+                return 'default';
+            default:
+                return 'secondary';
+        }
+    }
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
@@ -48,7 +61,7 @@ export default function UsersPage() {
                       <TableCell className="font-medium">{user.name}</TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>
-                        <Badge variant={user.role === 'Admin' ? 'default' : 'secondary'}>{user.role}</Badge>
+                        <Badge variant={getRoleVariant(user.role)}>{user.role}</Badge>
                       </TableCell>
                       <TableCell>{user.lastLogin}</TableCell>
                       <TableCell>
@@ -101,7 +114,7 @@ export default function UsersPage() {
                     <TableRow key={role}>
                       <TableCell className="font-medium">{role}</TableCell>
                       <TableCell className="text-muted-foreground text-sm">
-                        {role === 'Admin' ? 'Full access to all features' : `Limited access`}
+                        {role === 'Admin' || role === 'Developer' ? 'Full access to all features' : `Limited access`}
                       </TableCell>
                       <TableCell>
                          <Button variant="outline" size="sm">Manage Permissions</Button>

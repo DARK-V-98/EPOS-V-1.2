@@ -140,7 +140,7 @@ export const users = [
     { id: 'USER004', name: 'Mary Johnson', email: 'mary.j@inventoryace.com', role: 'Staff', lastLogin: '2024-07-29 08:00 AM' },
 ];
 
-export const roles = ['Admin', 'Manager', 'Staff', 'Auditor'];
+export const roles = ['Developer', 'Admin', 'Manager', 'Staff', 'Auditor'];
 
 export const categories = [
     { id: 'CAT001', name: 'Electronics', productCount: 120, subcategories: ['Laptops', 'Smartphones', 'Accessories'] },
