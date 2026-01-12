@@ -38,21 +38,39 @@
           "format": "date-time"
         },
         "businessName": {
-            "type": "string",
-            "description": "The name of the user's business."
+          "type": "string",
+          "description": "The name of the user's business."
         },
         "phone": {
-            "type": "string",
-            "description": "The user's phone number."
+          "type": "string",
+          "description": "The user's phone number."
         },
         "country": {
-            "type": "string",
-            "description": "The user's country."
+          "type": "string",
+          "description": "The user's country."
         },
         "plan": {
-            "type": "string",
-            "description": "The user's selected plan.",
-            "enum": ["free", "trial", "monthly", "yearly", "lifetime"]
+          "type": "string",
+          "description": "The user's selected plan.",
+          "enum": [
+            "free",
+            "trial",
+            "monthly",
+            "yearly",
+            "lifetime"
+          ]
+        },
+        "assignedWarehouse": {
+          "type": "string",
+          "description": "The ID of the warehouse the user is assigned to."
+        },
+        "status": {
+          "type": "string",
+          "description": "The status of the user account.",
+          "enum": [
+            "active",
+            "disabled"
+          ]
         }
       },
       "required": [
@@ -61,7 +79,8 @@
         "lastName",
         "email",
         "roleId",
-        "createdAt"
+        "createdAt",
+        "status"
       ]
     },
     "Role": {
@@ -79,17 +98,45 @@
           "description": "The name of the role (e.g., Admin, Manager, Staff, Developer)."
         },
         "permissions": {
-          "type": "array",
-          "description": "A list of permissions associated with this role.",
-          "items": {
-            "type": "string"
+          "type": "object",
+          "description": "A map of permissions associated with this role.",
+          "properties": {
+            "viewInventory": { "type": "boolean" },
+            "manageProducts": { "type": "boolean" },
+            "salesAccess": { "type": "boolean" },
+            "purchaseAccess": { "type": "boolean" },
+            "reportsAccess": { "type": "boolean" },
+            "settingsAccess": { "type": "boolean" },
+            "advancedAccess": { "type": "boolean" }
           }
         }
       },
       "required": [
         "id",
-        "name"
+        "name",
+        "permissions"
       ]
+    },
+    "Warehouse": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Warehouse",
+      "type": "object",
+      "description": "Represents a physical warehouse or stock location.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Warehouse entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the warehouse."
+        },
+        "location": {
+          "type": "string",
+          "description": "The address or location of the warehouse."
+        }
+      },
+      "required": [ "id", "name" ]
     }
   },
   "auth": {
@@ -107,7 +154,7 @@
           "schema": {
             "$ref": "#/backend/entities/User"
           },
-          "description": "Stores user data. Path-based ownership: only the user (or an admin) can access their own document.",
+          "description": "Stores user data. Path-based ownership: only the user (or an admin/developer) can access their own document.",
           "params": [
             {
               "name": "userId",
@@ -123,11 +170,27 @@
           "schema": {
             "$ref": "#/backend/entities/Role"
           },
-          "description": "Stores role definitions. Admin access required to manage roles.",
+          "description": "Stores role definitions. Admin/Developer access required to manage roles.",
           "params": [
             {
               "name": "roleId",
               "description": "The unique identifier of the role."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/warehouses/{warehouseId}",
+        "definition": {
+          "entityName": "Warehouse",
+          "schema": {
+            "$ref": "#/backend/entities/Warehouse"
+          },
+          "description": "Stores warehouse information. Admin/Developer access required.",
+          "params": [
+            {
+              "name": "warehouseId",
+              "description": "The unique identifier for the warehouse."
             }
           ]
         }

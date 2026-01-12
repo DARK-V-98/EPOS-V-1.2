@@ -62,6 +62,11 @@ const settingsItems = [
     href: '/dashboard/users',
     label: 'Users & Roles',
     icon: Users2,
+    subItems: [
+        { href: '/dashboard/users', label: 'Users List' },
+        { href: '/dashboard/users/add', label: 'Add User' },
+        { href: '/dashboard/roles', label: 'Roles & Permissions' },
+    ]
   },
   {
     href: '/dashboard/security',
@@ -81,7 +86,7 @@ export function DashboardNav() {
 
   const isSubItemActive = (subItems?: { href: string }[]) => {
     if (!subItems) return false;
-    return subItems.some((item) => item.href === pathname);
+    return subItems.some((item) => pathname.startsWith(item.href));
   };
   
   const renderMenuItem = (item: any) => {

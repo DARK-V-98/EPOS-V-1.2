@@ -12,11 +12,12 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    function getRoleDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    
     function getRole() {
-      // Use exists() to handle cases where the user document might not exist yet.
-      return exists(/databases/$(database)/documents/users/$(request.auth.uid))
-        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roleId
-        : '';
+      return getRoleDoc().roleId;
     }
 
     function isAdmin() {
@@ -26,24 +27,43 @@ service cloud.firestore {
     function isDeveloper() {
       return getRole() == 'developer';
     }
+    
+    function hasPermission(permission) {
+      let roleId = getRole();
+      let rolePermissions = get(/databases/$(database)/documents/roles/$(roleId)).data.permissions;
+      return rolePermissions[permission] == true;
+    }
 
     // User Profile
-    // Developers should be able to manage all user profiles.
+    // Developers/Admins should be able to manage all user profiles.
     match /users/{userId} {
-      allow read, update: if isOwner(userId) || isAdmin() || isDeveloper();
-      allow create: if isSignedIn();
-      allow delete: if isAdmin() || isDeveloper();
+      allow read: if isOwner(userId) || isAdmin() || isDeveloper();
+      allow update: if isOwner(userId) || isAdmin() || isDeveloper();
+      allow create, delete: if isAdmin() || isDeveloper();
     }
     
     // Roles Collection
-    // Developers should be able to read and write roles.
+    // Developers/Admins should be able to read and write roles.
     match /roles/{roleId} {
       allow read: if isSignedIn();
       allow write: if isAdmin() || isDeveloper();
     }
+    
+    // Warehouses Collection
+    match /warehouses/{warehouseId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin() || isDeveloper();
+    }
 
-    // Catch-all for any other collections.
-    // This gives developers admin-level access to any other data.
+    // Products Collection
+    match /products/{productId} {
+      allow read: if hasPermission('viewInventory');
+      allow write: if hasPermission('manageProducts');
+    }
+
+    // Other collections can be added here following a similar pattern.
+
+    // Catch-all for any other collections for admin/dev access.
     match /{document=**} {
       allow read, write: if isAdmin() || isDeveloper();
     }
