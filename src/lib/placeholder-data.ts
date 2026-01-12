@@ -15,6 +15,27 @@ import {
 
 export const dashboardCards = [
   {
+    title: 'Total Revenue',
+    value: '$45,231.89',
+    change: '+20.1%',
+    icon: DollarSign,
+    color: 'green',
+  },
+  {
+    title: 'Subscriptions',
+    value: '+2350',
+    change: '+180.1%',
+    icon: Users,
+    color: 'green',
+  },
+   {
+    title: 'Sales',
+    value: '+12,234',
+    change: '+19%',
+    icon: CreditCard,
+    color: 'green',
+  },
+  {
     title: 'Total Products',
     subtitle: 'vs last month',
     value: '2,847',
@@ -178,8 +199,16 @@ export const securityLogs = [
 ];
 
 export const lowStockAlerts = [
-  { id: '1', name: 'Samsung Galaxy S24', sku: 'SAM-S24-128', left: 5, min: 20 },
-  { id: '2', name: 'Google Pixel 8 Pro', sku: 'GOO-PX8P-256', left: 3, min: 15 },
-  { id: '3', name: 'Sony WH-1000XM5', sku: 'SNY-XM5-BK', left: 8, min: 25 },
-  { id: '4', name: 'iPad Pro 12.9"', sku: 'APL-IPP12-256', left: 2, min: 10 },
+  { id: '1', name: 'Samsung Galaxy S24', sku: 'SAM-S24-128', left: 5, min: 20, imageUrl: "https://picsum.photos/seed/a/40/40" },
+  { id: '2', name: 'Google Pixel 8 Pro', sku: 'GOO-PX8P-256', left: 3, min: 15, imageUrl: "https://picsum.photos/seed/b/40/40" },
+  { id: '3', name: 'Sony WH-1000XM5', sku: 'SNY-XM5-BK', left: 8, min: 25, imageUrl: "https://picsum.photos/seed/c/40/40" },
+  { id: '4', name: 'iPad Pro 12.9"', sku: 'APL-IPP12-256', left: 2, min: 10, imageUrl: "https://picsum.photos/seed/d/40/40" },
+];
+
+export const recentSales = [
+  { id: '1', name: 'Olivia Martin', email: 'olivia.martin@email.com', amount: 1999.00, month: "January", avatarUrl: "https://i.pravatar.cc/40?img=1" },
+  { id: '2', name: 'Jackson Lee', email: 'jackson.lee@email.com', amount: 39.00, month: "February", avatarUrl: "https://i.pravatar.cc/40?img=2" },
+  { id: '3', name: 'Isabella Nguyen', email: 'isabella.nguyen@email.com', amount: 299.00, month: "March", avatarUrl: "https://i.pravatar.cc/40?img=3" },
+  { id: '4', name: 'William Kim', email: 'will@email.com', amount: 99.00, month: "April", avatarUrl: "https://i.pravatar.cc/40?img=4" },
+  { id: '5', name: 'Sofia Davis', email: 'sofia.davis@email.com', amount: 39.00, month: "May", avatarUrl: "https://i.pravatar.cc/40?img=5" },
 ];

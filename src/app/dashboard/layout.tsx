@@ -20,8 +20,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
               <Logo className="h-8 w-8 text-primary" />
               <div className='flex flex-col'>
-                <span className="font-headline text-lg">StockFlow</span>
-                <span className='text-xs text-muted-foreground'>Inventory Pro</span>
+                <span className="font-headline text-lg">Inventory Ace</span>
+                <span className='text-xs text-muted-foreground'>SaaS</span>
               </div>
             </Link>
           </SidebarHeader>
