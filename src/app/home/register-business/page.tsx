@@ -1,41 +1,57 @@
 'use client';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { motion } from 'framer-motion';
-import { Building, Globe, Phone } from 'lucide-react';
-import { useUser, useFirestore, addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
-import { collection, doc } from 'firebase/firestore';
+import { Building, Info, FileCheck, Clock } from 'lucide-react';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { collection, doc, addDoc, query, where, getDocs } from 'firebase/firestore';
+import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { toast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
-const businessSchema = z.object({
+const businessNameSchema = z.object({
   name: z.string().min(2, 'Business name must be at least 2 characters.'),
-  country: z.string().min(2, 'Country is required.'),
-  phone: z.string().optional(),
 });
-
-type BusinessFormData = z.infer<typeof businessSchema>;
+type BusinessNameFormData = z.infer<typeof businessNameSchema>;
 
 export default function RegisterBusinessPage() {
   const router = useRouter();
   const { user } = useUser();
   const firestore = useFirestore();
+  const [companyStatus, setCompanyStatus] = useState<'not_registered' | 'pending' | 'approved' | 'rejected'>('not_registered');
+  const [companyId, setCompanyId] = useState<string | null>(null);
 
-  const form = useForm<BusinessFormData>({
-    resolver: zodResolver(businessSchema),
-    defaultValues: {
-      name: '',
-      country: 'Sri Lanka',
-      phone: '',
-    },
+  const companyQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return query(collection(firestore, 'companies'), where('ownerId', '==', user.uid));
+  }, [firestore, user]);
+
+  useDoc(companyQuery, {
+    onSuccess: (snapshot) => {
+      if (!snapshot.empty) {
+        const companyDoc = snapshot.docs[0];
+        setCompanyId(companyDoc.id);
+        const companyData = companyDoc.data();
+        if (companyData) {
+          setCompanyStatus(companyData.status || 'pending');
+        }
+      }
+    }
   });
 
-  const onSubmit = async (data: BusinessFormData) => {
+  const form = useForm<BusinessNameFormData>({
+    resolver: zodResolver(businessNameSchema),
+    defaultValues: { name: '' },
+  });
+
+  const onSubmit = async (data: BusinessNameFormData) => {
     if (!user) {
       toast({
         title: 'Error',
@@ -46,42 +62,77 @@ export default function RegisterBusinessPage() {
     }
 
     try {
-      // 1. Create the company document
       const companyCollectionRef = collection(firestore, 'companies');
-      const companyDocRef = await addDocumentNonBlocking(companyCollectionRef, {
+      const companyDocRef = await addDoc(companyCollectionRef, {
         name: data.name,
-        country: data.country,
-        phone: data.phone,
         ownerId: user.uid,
         createdAt: new Date().toISOString(),
+        status: 'pending_details', // New status
       });
-      
-      if(!companyDocRef) {
+
+      if (!companyDocRef) {
         throw new Error('Could not create company document.');
       }
+      
+      router.push(`/home/register-business/${companyDocRef.id}/details`);
 
-      // 2. Update the user's document with the new companyId and set role to 'admin'
-      const userDocRef = doc(firestore, 'users', user.uid);
-      await updateDocumentNonBlocking(userDocRef, {
-        companyId: companyDocRef.id,
-        roleId: 'admin', // The user who registers the business becomes the admin
-      });
-
-      toast({
-        title: 'Business Registered!',
-        description: `${data.name} has been created successfully.`,
-      });
-
-      router.push('/dashboard');
     } catch (error) {
-      console.error('Error registering business:', error);
+      console.error('Error registering business name:', error);
       toast({
         title: 'Registration Failed',
-        description: 'An error occurred while registering your business. Please try again.',
+        description: 'An error occurred. Please try again.',
         variant: 'destructive',
       });
     }
   };
+  
+  if (companyId) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-8 bg-background">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-lg glass-card p-8"
+        >
+          <div className="text-center">
+            {companyStatus === 'pending' && (
+              <>
+                <Clock className="w-12 h-12 text-warning mx-auto mb-4" />
+                <h1 className="text-3xl font-display font-bold">Registration Pending</h1>
+                <p className="text-muted-foreground mt-2">
+                  Your business registration is currently under review by our team.
+                </p>
+                 <p className="text-sm text-muted-foreground mt-2">
+                   You will be notified once a decision has been made.
+                 </p>
+              </>
+            )}
+             {companyStatus === 'approved' && (
+              <>
+                <FileCheck className="w-12 h-12 text-success mx-auto mb-4" />
+                <h1 className="text-3xl font-display font-bold">Registration Approved!</h1>
+                <p className="text-muted-foreground mt-2">
+                  Congratulations! Your business is now active. You can access your dashboard.
+                </p>
+                <Link href="/dashboard" className="btn-primary mt-6">Go to Dashboard</Link>
+              </>
+            )}
+             {companyStatus === 'rejected' && (
+              <>
+                <Info className="w-12 h-12 text-destructive mx-auto mb-4" />
+                <h1 className="text-3xl font-display font-bold">Registration Update</h1>
+                 <p className="text-muted-foreground mt-2">
+                  There was an issue with your registration. Please check your email for details from our support team.
+                </p>
+              </>
+            )}
+            <Link href="/home" className="block mt-6 text-sm text-primary hover:underline">Back to Home</Link>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
 
   return (
     <div className="min-h-screen flex items-center justify-center p-8 bg-background">
@@ -93,7 +144,7 @@ export default function RegisterBusinessPage() {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-display font-bold">Register Your Business</h1>
           <p className="text-muted-foreground">
-            Create a company profile to start using EPOS V 1.2.
+            Let's start with your business name.
           </p>
         </div>
 
@@ -116,57 +167,8 @@ export default function RegisterBusinessPage() {
               )}
             />
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormField
-                control={form.control}
-                name="country"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Country</FormLabel>
-                    <FormControl>
-                       <div className="relative">
-                          <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                          <select {...field} className="input-field pl-10 appearance-none w-full">
-                            <option>Sri Lanka</option>
-                            <option>India</option>
-                            <option>Singapore</option>
-                            <option>Malaysia</option>
-                            <option>Japan</option>
-                            <option>South Korea</option>
-                            <option>United States</option>
-                            <option>United Kingdom</option>
-                            <option>Canada</option>
-                            <option>Australia</option>
-                            <option>Germany</option>
-                            <option>France</option>
-                          </select>
-                        </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="phone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone (Optional)</FormLabel>
-                    <FormControl>
-                       <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                        <Input type="tel" placeholder="+94 77 123 4567" className="pl-10" {...field} />
-                       </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            
             <Button type="submit" className="w-full btn-primary" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? 'Registering...' : 'Create Business Profile'}
+              {form.formState.isSubmitting ? 'Saving...' : 'Continue'}
             </Button>
           </form>
         </Form>

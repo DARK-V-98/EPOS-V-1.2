@@ -51,11 +51,19 @@
         "id": { "type": "string", "description": "Unique identifier for the Company, serving as the secret code." },
         "name": { "type": "string", "description": "The name of the company." },
         "ownerId": { "type": "string", "description": "The user ID of the person who created the company." },
-        "country": { "type": "string" },
-        "phone": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "createdAt": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["pending_details", "pending", "approved", "rejected"] },
+        "ownerFullName": { "type": "string" },
+        "ownerContact": { "type": "string" },
+        "ownerNic": { "type": "string" },
+        "ownerAddress": { "type": "string" },
+        "officeContact": { "type": "string" },
+        "workerRange": { "type": "string" },
+        "package": { "type": "string" },
+        "isRegistered": { "type": "boolean" },
+        "registrationNumber": { "type": "string" }
       },
-      "required": ["id", "name", "ownerId", "createdAt"]
+      "required": ["id", "name", "ownerId", "createdAt", "status"]
     },
     "JoinRequest": {
         "$schema": "http://json-schema.org/draft-07/schema#",

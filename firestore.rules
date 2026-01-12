@@ -58,11 +58,15 @@ service cloud.firestore {
     // --- Company Collections (Multi-tenant) ---
     match /companies/{companyId} {
       // Developers can read/write any company info.
-      // Company admins can read/update their own company info.
-      // Any signed-in user can read a company doc (to find by code).
-      allow read: if isSignedIn();
-      allow create: if isSignedIn(); // Any signed-in user can register a company.
-      allow update: if isDeveloper() || (isCompanyAdmin(companyId) && request.resource.data.ownerId == resource.data.ownerId);
+      // Company admins can read their own company info.
+      // Owner of company can read their doc.
+      allow read: if isDeveloper() || isCompanyAdmin(companyId) || isOwner(resource.data.ownerId);
+      allow create: if isSignedIn();
+      // Devs can update any, owner can update if status is pending_details
+      // Admins can update their own company info but not change owner.
+      allow update: if isDeveloper() 
+                    || (isOwner(resource.data.ownerId) && resource.data.status == 'pending_details')
+                    || (isCompanyAdmin(companyId) && request.resource.data.ownerId == resource.data.ownerId);
       allow delete: if isDeveloper();
       
       // Join Requests

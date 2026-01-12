@@ -6,7 +6,8 @@ import {
   FileText, 
   Briefcase,
   Users,
-  ArrowRight
+  ArrowRight,
+  Code
 } from 'lucide-react';
 import Link from 'next/link';
 import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
@@ -36,7 +37,7 @@ export default function HomePage() {
     ...(isDeveloper ? [{ 
         name: 'Developer Dashboard', 
         description: 'Manage all businesses registered in the system.', 
-        icon: Users, 
+        icon: Code, 
         href: '/dashboard/developer',
         disabled: false
     }] : []),

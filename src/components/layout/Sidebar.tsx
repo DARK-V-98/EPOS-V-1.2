@@ -21,7 +21,8 @@ import {
   Shield,
   Sparkles,
   Code,
-  Building
+  Building,
+  Wallet
 } from 'lucide-react';
 import { useAuth, useDoc, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { doc } from 'firebase/firestore';
@@ -33,6 +34,7 @@ interface NavItem {
   path?: string;
   children?: { label: string; path: string }[];
   badge?: string;
+  developerOnly?: boolean;
 }
 
 const navItems: NavItem[] = [
@@ -69,6 +71,7 @@ const navItems: NavItem[] = [
   { icon: Users, label: 'Customers', path: '/dashboard/customers' },
   { icon: BarChart3, label: 'Reports', path: '/dashboard/reports', badge: 'Pro' },
   { icon: Bell, label: 'Notifications', path: '/dashboard/notifications', badge: '3' },
+  { icon: Wallet, label: 'POS', path: '/pos', developerOnly: true },
 ];
 
 const bottomNavItems: NavItem[] = [
@@ -98,6 +101,7 @@ export function Sidebar({ isMobileOpen, setIsMobileOpen }: { isMobileOpen: boole
   }, [firestore, user]);
 
   const { data: userProfile } = useDoc<UserProfile>(userDocRef);
+  const isDeveloper = userProfile?.roleId === 'developer';
 
   const handleLogout = () => {
     auth.signOut().then(() => {
@@ -122,6 +126,10 @@ export function Sidebar({ isMobileOpen, setIsMobileOpen }: { isMobileOpen: boole
   };
 
   const renderNavItem = (item: NavItem, index: number) => {
+    if (item.developerOnly && !isDeveloper) {
+        return null;
+    }
+      
     const Icon = item.icon;
     const hasChildren = item.children && item.children.length > 0;
     const isExpanded = expandedItems.includes(item.label);
