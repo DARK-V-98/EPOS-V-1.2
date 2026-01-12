@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { toast } from '@/hooks/use-toast';
+import Link from 'next/link';
 
 const businessSchema = z.object({
   name: z.string().min(2, 'Business name must be at least 2 characters.'),
