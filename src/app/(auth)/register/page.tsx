@@ -16,10 +16,18 @@ import {
   Check
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/firebase';
+import { initiateEmailSignUp } from '@/firebase/non-blocking-login';
+import { setDoc, doc } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
+import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 const plans = [
   { id: 'free', name: 'Free', description: 'Basic features for small businesses' },
   { id: 'trial', name: 'Pro Trial', description: '14 days free trial of Pro features' },
+  { id: 'monthly', name: 'Monthly Paid', description: 'Full features on a monthly basis' },
+  { id: 'yearly', name: 'Yearly Paid', description: 'Full features with a discount' },
+  { id: 'lifetime', name: 'Lifetime Paid', description: 'One-time payment for lifetime access' },
 ];
 
 export default function Register() {
@@ -27,14 +35,49 @@ export default function Register() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState('trial');
   const router = useRouter();
+  const auth = useAuth();
+  const firestore = useFirestore();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => {
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+    const businessName = formData.get('businessName') as string;
+    const ownerName = formData.get('ownerName') as string;
+    const phone = formData.get('phone') as string;
+    const country = formData.get('country') as string;
+    const plan = selectedPlan;
+    
+    try {
+      const userCredential = await initiateEmailSignUp(auth, email, password);
+      
+      if (userCredential && userCredential.user) {
+        const user = userCredential.user;
+        const userRef = doc(firestore, "users", user.uid);
+        
+        await setDocumentNonBlocking(userRef, {
+          id: user.uid,
+          firstName: ownerName.split(' ')[0],
+          lastName: ownerName.split(' ')[1] || '',
+          email: user.email,
+          businessName,
+          phone,
+          country,
+          plan,
+          roleId: 'admin', // Default role for new registration
+          createdAt: new Date().toISOString(),
+          lastLogin: new Date().toISOString(),
+        }, { merge: true });
+        
+        router.push('/dashboard');
+      }
+      
+    } catch (error) {
+      console.error(error);
       setIsLoading(false);
-      router.push('/dashboard');
-    }, 1500);
+    }
   };
 
   return (
@@ -123,6 +166,7 @@ export default function Register() {
                   <Building className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <input
                     type="text"
+                    name="businessName"
                     placeholder="Your Company"
                     className="input-field pl-12"
                     required
@@ -135,6 +179,7 @@ export default function Register() {
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <input
                     type="text"
+                    name="ownerName"
                     placeholder="John Doe"
                     className="input-field pl-12"
                     required
@@ -149,6 +194,7 @@ export default function Register() {
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
                   type="email"
+                  name="email"
                   placeholder="you@company.com"
                   className="input-field pl-12"
                   required
@@ -163,6 +209,7 @@ export default function Register() {
                   <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <input
                     type="tel"
+                    name="phone"
                     placeholder="+1 (555) 000-0000"
                     className="input-field pl-12"
                   />
@@ -172,7 +219,7 @@ export default function Register() {
                 <label className="block text-sm font-medium mb-2">Country</label>
                 <div className="relative">
                   <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <select className="input-field pl-12 appearance-none">
+                  <select name="country" className="input-field pl-12 appearance-none">
                     <option>United States</option>
                     <option>United Kingdom</option>
                     <option>Canada</option>
@@ -190,6 +237,7 @@ export default function Register() {
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
                   type={showPassword ? 'text' : 'password'}
+                  name="password"
                   placeholder="Create a strong password"
                   className="input-field pl-12 pr-12"
                   required

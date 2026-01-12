@@ -1,8 +1,8 @@
 export const firebaseConfig = {
-  "projectId": "studio-9035200826-5d7a4",
-  "appId": "1:136866783944:web:d06ed998399ffc41a53bfd",
-  "apiKey": "AIzaSyA_MY1aEbWL5EeHaCE_FEIrBtayCkGi-Xg",
-  "authDomain": "studio-9035200826-5d7a4.firebaseapp.com",
-  "measurementId": "",
-  "messagingSenderId": "136866783944"
+  apiKey: "AIzaSyBk6D2twS0S9rRMxDjZKDzCgUvKIPskrd0",
+  authDomain: "swiftpos-d530g.firebaseapp.com",
+  projectId: "swiftpos-d530g",
+  storageBucket: "swiftpos-d530g.firebasestorage.app",
+  messagingSenderId: "704228566516",
+  appId: "1:704228566516:web:9190597e19cb4a560285a1"
 };

@@ -25,7 +25,7 @@
         },
         "roleId": {
           "type": "string",
-          "description": "Reference to the Role entity. (Relationship: Role 1:N User)"
+          "description": "Reference to the Role entity."
         },
         "createdAt": {
           "type": "string",
@@ -36,6 +36,23 @@
           "type": "string",
           "description": "The date and time of the user's last login.",
           "format": "date-time"
+        },
+        "businessName": {
+            "type": "string",
+            "description": "The name of the user's business."
+        },
+        "phone": {
+            "type": "string",
+            "description": "The user's phone number."
+        },
+        "country": {
+            "type": "string",
+            "description": "The user's country."
+        },
+        "plan": {
+            "type": "string",
+            "description": "The user's selected plan.",
+            "enum": ["free", "trial", "monthly", "yearly", "lifetime"]
         }
       },
       "required": [
@@ -59,7 +76,7 @@
         },
         "name": {
           "type": "string",
-          "description": "The name of the role (e.g., Admin, Manager, Staff)."
+          "description": "The name of the role (e.g., Admin, Manager, Staff, Developer)."
         },
         "permissions": {
           "type": "array",
@@ -77,8 +94,7 @@
   },
   "auth": {
     "providers": [
-      "password",
-      "anonymous"
+      "password"
     ]
   },
   "firestore": {
@@ -115,7 +131,6 @@
           ]
         }
       }
-    ],
-    "reasoning": "The Firestore structure is designed to provide a secure, scalable, and easily debuggable system for Inventory Ace, adhering to the principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and QAPs (Rules are not Filters). This is achieved through denormalization, structural segregation, and consistent access modeling.\n\n1.  **Authorization Independence (CRITICAL):** The design avoids hierarchical authorization dependencies (`get()`). User roles are managed through a dedicated `/roles/{roleId}` collection and roles are associated to the users through the `roleId` field in the `/users/{userId}`. This eliminates the need for security rules to perform `get()` operations on parent documents, which would break atomic operations (transactions/batches) and make debugging more difficult. This approach relies on DBAC, where roles are stored in the database and authorization relies solely on `request.auth.uid`.\n\n2.  **Structural Segregation (Homogeneous Security Posture):** The `/users/{userId}` collection stores user-specific data, while the `/roles/{roleId}` collection stores role definitions. This segregation ensures that each collection has a homogeneous security posture, simplifying security rules and making them easier to understand and maintain. The security rules for `/users/{userId}` can focus on ownership (`request.auth.uid == userId`), while the security rules for `/roles/{roleId}` can focus on administrative access.\n\n3.  **Access Modeling (Standardization and Consistency):**\n    *   **Private Data:** User data is stored under `/users/{userId}`, adhering to the Path-Based ownership model. This ensures that only the authenticated user can access their own data.\n    *   **Global Roles (DBAC):** Roles are managed in the `/roles/{roleId}` collection. The use of dedicated collections like `/roles` is preferred over custom claims to ensure simple and debuggable security rules.\n\n4.  **QAPs (Rules are not Filters):** The data structure supports secure `list` operations. Rules do not filter, instead the data is structured so that list operations will only return the data that the user is authorized to see. For example, listing users is an admin level permission so only an admin would have access to list the users. The structure must enable secure `list` operations.\n\n5.  **Invariants:** The structure supports the integrity of ownership through path-based ownership for user data. Timestamps, such as `createdAt` and `lastLogin` are stored directly in the user document to maintain data integrity.\n"
+    ]
   }
 }
