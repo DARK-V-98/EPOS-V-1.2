@@ -7,11 +7,14 @@ import {
   Briefcase,
   Users,
   ArrowRight,
-  Code
+  Code,
+  Wallet
 } from 'lucide-react';
 import Link from 'next/link';
 import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 interface UserProfile {
     roleId?: string;
@@ -21,6 +24,7 @@ interface UserProfile {
 export default function HomePage() {
     const { user, isUserLoading } = useUser();
     const firestore = useFirestore();
+    const router = useRouter();
 
     const userDocRef = useMemoFirebase(() => {
         if (!user) return null;
@@ -28,6 +32,12 @@ export default function HomePage() {
       }, [firestore, user]);
     
     const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userDocRef);
+
+    useEffect(() => {
+        if (!isUserLoading && !user) {
+            router.push('/login');
+        }
+    }, [isUserLoading, user, router]);
 
     const isLoading = isUserLoading || isProfileLoading;
     const isDeveloper = userProfile?.roleId === 'developer';
@@ -73,10 +83,17 @@ export default function HomePage() {
         disabled: hasCompany,
         disabledText: 'You are already part of a company.'
     },
+     ...(isDeveloper ? [{ 
+        name: 'Developer POS', 
+        description: 'Access the POS system for development and testing.', 
+        icon: Wallet, 
+        href: '/pos',
+        disabled: false
+    }] : []),
   ];
 
-  if (isLoading) {
-      return <div className="min-h-screen flex items-center justify-center">Loading...</div> // Or a proper skeleton loader
+  if (isLoading || !user) {
+      return <div className="min-h-screen flex items-center justify-center">Loading...</div>
   }
 
   return (
