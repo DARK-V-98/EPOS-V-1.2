@@ -5,6 +5,7 @@ import { Inter, Space_Grotesk } from 'next/font/google';
 import { cn } from '@/lib/utils';
 import Providers from './providers';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { BackToSystemsButton } from '@/components/layout/BackToSystemsButton';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-display' });
@@ -24,6 +25,7 @@ export default function RootLayout({
       <body className={cn('min-h-screen bg-background font-sans antialiased', inter.variable, spaceGrotesk.variable)}>
         <Providers>
           <FirebaseClientProvider>
+            <BackToSystemsButton />
             {children}
             <Toaster />
           </FirebaseClientProvider>
