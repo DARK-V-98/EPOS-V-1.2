@@ -42,10 +42,11 @@ const menuItems = [
     icon: LayoutGrid,
   },
   { href: '/dashboard/products', label: 'Products', icon: Boxes },
+  { href: '/dashboard/categories', label: 'Categories', icon: Folder },
   { href: '/dashboard/warehouses', label: 'Warehouses', icon: Warehouse },
   { href: '/dashboard/suppliers', label: 'Suppliers', icon: Truck },
-  { href: '/dashboard/purchases', label: 'Purchases', icon: ShoppingCart, subItems: [{href: "#", label: 'sub'}] },
-  { href: '/pos', label: 'Sales', icon: Wallet, subItems: [{href: "#", label: 'sub'}]  },
+  { href: '/dashboard/purchases', label: 'Purchases', icon: ShoppingCart },
+  { href: '/pos', label: 'POS', icon: Wallet  },
   { href: '/dashboard/customers', label: 'Customers', icon: Users },
   { href: '/dashboard/reports', label: 'Reports', icon: BarChart, pro: true },
   { href: '/dashboard/notifications', label: 'Notifications', icon: Bell, count: 3 },
@@ -56,6 +57,11 @@ const settingsItems = [
     href: '/dashboard/subscription',
     label: 'Subscription',
     icon: CreditCard,
+  },
+  {
+    href: '/dashboard/users',
+    label: 'Users & Roles',
+    icon: Users2,
   },
   {
     href: '/dashboard/security',
@@ -119,7 +125,7 @@ export function DashboardNav() {
               <item.icon className="h-5 w-5" />
               <span>{item.label}</span>
             </div>
-             {item.pro && <Badge variant="destructive" className="ml-auto bg-red-100 text-red-600">Pro</Badge>}
+             {item.pro && <Badge variant="destructive" className="ml-auto bg-primary text-primary-foreground">Pro</Badge>}
              {item.count && <Badge variant="secondary" className="ml-auto">{item.count}</Badge>}
           </Link>
         </SidebarMenuButton>
