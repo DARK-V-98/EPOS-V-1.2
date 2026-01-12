@@ -7,65 +7,88 @@ service cloud.firestore {
     function isSignedIn() {
       return request.auth != null;
     }
+    
+    function getUserDoc(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data;
+    }
 
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
-
-    function getRoleDoc() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    
+    function getRole(userId) {
+      return getUserDoc(userId).roleId;
     }
     
-    function getRole() {
-      return getRoleDoc().roleId;
+    function getCompanyId(userId) {
+       return getUserDoc(userId).companyId;
     }
 
-    function isAdmin() {
-      return getRole() == 'admin';
-    }
-    
     function isDeveloper() {
-      return getRole() == 'developer';
+      return getRole(request.auth.uid) == 'developer';
     }
     
-    function hasPermission(permission) {
-      let roleId = getRole();
-      let rolePermissions = get(/databases/$(database)/documents/roles/$(roleId)).data.permissions;
-      return rolePermissions[permission] == true;
+    function isCompanyAdmin(companyId) {
+        let userCompanyId = getCompanyId(request.auth.uid);
+        let userRole = getRole(request.auth.uid);
+        return userCompanyId == companyId && (userRole == 'admin' || userRole == 'manager');
+    }
+    
+    function isCompanyMember(companyId) {
+        return getCompanyId(request.auth.uid) == companyId;
     }
 
-    // User Profile
-    // Developers/Admins should be able to manage all user profiles.
+    // --- Global Collections ---
+
+    // Users can read their own profile. Developers can read any.
+    // Users can update their own profile. Admins/Devs can update any user in their company.
     match /users/{userId} {
-      allow read: if isOwner(userId) || isAdmin() || isDeveloper();
-      allow update: if isOwner(userId) || isAdmin() || isDeveloper();
-      allow create, delete: if isAdmin() || isDeveloper();
+      allow read: if isOwner(userId) || isDeveloper();
+      allow create: if isSignedIn(); // Anyone can create their own user doc on signup.
+      allow update: if isOwner(userId) || isDeveloper() || isCompanyAdmin(getCompanyId(userId));
+      allow delete: if isDeveloper(); // Only developers can delete users.
     }
     
-    // Roles Collection
-    // Developers/Admins should be able to read and write roles.
+    // All signed-in users can read roles. Only developers can manage them.
     match /roles/{roleId} {
       allow read: if isSignedIn();
-      allow write: if isAdmin() || isDeveloper();
+      allow write: if isDeveloper();
     }
     
-    // Warehouses Collection
-    match /warehouses/{warehouseId} {
+    // --- Company Collections (Multi-tenant) ---
+    match /companies/{companyId} {
+      // Developers can read/write any company info.
+      // Company admins can read/update their own company info.
+      // Any signed-in user can read a company doc (to find by code).
       allow read: if isSignedIn();
-      allow write: if isAdmin() || isDeveloper();
-    }
+      allow create: if isSignedIn(); // Any signed-in user can register a company.
+      allow update: if isDeveloper() || (isCompanyAdmin(companyId) && request.resource.data.ownerId == resource.data.ownerId);
+      allow delete: if isDeveloper();
+      
+      // Join Requests
+      match /joinRequests/{requestId} {
+        // Users can create requests to join.
+        allow create: if isSignedIn();
+        // Company admins/devs can read/update (approve/deny) requests.
+        // The user who made the request can read it.
+        allow read, update: if isDeveloper() || isCompanyAdmin(companyId) || isOwner(request.resource.data.userId);
+        allow delete: if isDeveloper() || isCompanyAdmin(companyId);
+      }
+      
+      // Products can only be accessed by members of that company or developers.
+      match /products/{productId} {
+        allow read, write: if isDeveloper() || isCompanyMember(companyId);
+      }
+      
+      // Warehouses can only be accessed by members of that company or developers.
+      match /warehouses/{warehouseId} {
+         allow read, write: if isDeveloper() || isCompanyMember(companyId);
+      }
 
-    // Products Collection
-    match /products/{productId} {
-      allow read: if hasPermission('viewInventory');
-      allow write: if hasPermission('manageProducts');
-    }
-
-    // Other collections can be added here following a similar pattern.
-
-    // Catch-all for any other collections for admin/dev access.
-    match /{document=**} {
-      allow read, write: if isAdmin() || isDeveloper();
+      // Any other subcollection under a company
+      match /{document=**} {
+        allow read, write: if isDeveloper() || isCompanyMember(companyId);
+      }
     }
   }
 }

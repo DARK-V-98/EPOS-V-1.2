@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard,
@@ -20,7 +20,8 @@ import {
   CreditCard,
   Shield,
   Sparkles,
-  Code
+  Code,
+  Building
 } from 'lucide-react';
 import { useAuth, useDoc, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { doc } from 'firebase/firestore';
@@ -71,6 +72,7 @@ const navItems: NavItem[] = [
 ];
 
 const bottomNavItems: NavItem[] = [
+  { icon: Building, label: 'Company', path: '/dashboard/company' },
   { icon: CreditCard, label: 'Subscription', path: '/dashboard/subscription' },
   { icon: Shield, label: 'Security', path: '/dashboard/security' },
   { icon: Settings, label: 'Settings', path: '/dashboard/settings' },
@@ -84,6 +86,7 @@ interface UserProfile {
 
 export function Sidebar({ isMobileOpen, setIsMobileOpen }: { isMobileOpen: boolean, setIsMobileOpen: (open: boolean) => void }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [expandedItems, setExpandedItems] = useState<string[]>(['Products']);
   const auth = useAuth();
   const { user } = useUser();
@@ -97,7 +100,9 @@ export function Sidebar({ isMobileOpen, setIsMobileOpen }: { isMobileOpen: boole
   const { data: userProfile } = useDoc<UserProfile>(userDocRef);
 
   const handleLogout = () => {
-    auth.signOut();
+    auth.signOut().then(() => {
+        router.push('/login');
+    });
   };
 
   const toggleExpand = (label: string) => {
@@ -193,7 +198,7 @@ export function Sidebar({ isMobileOpen, setIsMobileOpen }: { isMobileOpen: boole
     <div className="flex flex-col h-full">
       {/* Logo */}
       <div className="p-6 border-b border-sidebar-border">
-        <Link href="/dashboard" className="flex items-center gap-3">
+        <Link href="/home" className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
             <Sparkles className="w-5 h-5 text-primary-foreground" />
           </div>

@@ -6,82 +6,17 @@
       "type": "object",
       "description": "Represents a user within the Inventory Ace application.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the User entity."
-        },
-        "firstName": {
-          "type": "string",
-          "description": "The first name of the user."
-        },
-        "lastName": {
-          "type": "string",
-          "description": "The last name of the user."
-        },
-        "email": {
-          "type": "string",
-          "description": "The email address of the user.",
-          "format": "email"
-        },
-        "roleId": {
-          "type": "string",
-          "description": "Reference to the Role entity."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "The date and time when the user account was created.",
-          "format": "date-time"
-        },
-        "lastLogin": {
-          "type": "string",
-          "description": "The date and time of the user's last login.",
-          "format": "date-time"
-        },
-        "businessName": {
-          "type": "string",
-          "description": "The name of the user's business."
-        },
-        "phone": {
-          "type": "string",
-          "description": "The user's phone number."
-        },
-        "country": {
-          "type": "string",
-          "description": "The user's country."
-        },
-        "plan": {
-          "type": "string",
-          "description": "The user's selected plan.",
-          "enum": [
-            "free",
-            "trial",
-            "monthly",
-            "yearly",
-            "lifetime"
-          ]
-        },
-        "assignedWarehouse": {
-          "type": "string",
-          "description": "The ID of the warehouse the user is assigned to."
-        },
-        "status": {
-          "type": "string",
-          "description": "The status of the user account.",
-          "enum": [
-            "active",
-            "disabled"
-          ]
-        }
+        "id": { "type": "string", "description": "Unique identifier for the User entity." },
+        "firstName": { "type": "string", "description": "The first name of the user." },
+        "lastName": { "type": "string", "description": "The last name of the user." },
+        "email": { "type": "string", "description": "The email address of the user.", "format": "email" },
+        "roleId": { "type": "string", "description": "Reference to the Role entity." },
+        "companyId": { "type": "string", "description": "Reference to the Company entity the user belongs to." },
+        "createdAt": { "type": "string", "description": "The date and time when the user account was created.", "format": "date-time" },
+        "lastLogin": { "type": "string", "description": "The date and time of the user's last login.", "format": "date-time" },
+        "status": { "type": "string", "description": "The status of the user account.", "enum": ["active", "disabled"] }
       },
-      "required": [
-        "id",
-        "firstName",
-        "lastName",
-        "email",
-        "roleId",
-        "createdAt",
-        "status"
-      ]
+      "required": ["id", "firstName", "lastName", "email", "roleId", "createdAt", "status"]
     },
     "Role": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -89,14 +24,8 @@
       "type": "object",
       "description": "Represents a role within the application, such as Admin, Manager, or Staff.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Role entity."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the role (e.g., Admin, Manager, Staff, Developer)."
-        },
+        "id": { "type": "string", "description": "Unique identifier for the Role entity." },
+        "name": { "type": "string", "description": "The name of the role (e.g., Admin, Manager, Staff, Developer)." },
         "permissions": {
           "type": "object",
           "description": "A map of permissions associated with this role.",
@@ -111,89 +40,67 @@
           }
         }
       },
-      "required": [
-        "id",
-        "name",
-        "permissions"
-      ]
+      "required": ["id", "name", "permissions"]
     },
-    "Warehouse": {
+    "Company": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Warehouse",
+      "title": "Company",
       "type": "object",
-      "description": "Represents a physical warehouse or stock location.",
+      "description": "Represents a single business or tenant in the multi-tenant system.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Warehouse entity."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the warehouse."
-        },
-        "location": {
-          "type": "string",
-          "description": "The address or location of the warehouse."
-        }
+        "id": { "type": "string", "description": "Unique identifier for the Company, serving as the secret code." },
+        "name": { "type": "string", "description": "The name of the company." },
+        "ownerId": { "type": "string", "description": "The user ID of the person who created the company." },
+        "country": { "type": "string" },
+        "phone": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": [ "id", "name" ]
-    }
+      "required": ["id", "name", "ownerId", "createdAt"]
+    },
+    "JoinRequest": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "JoinRequest",
+        "type": "object",
+        "description": "A request from a user to join a company.",
+        "properties": {
+          "id": { "type": "string" },
+          "userId": { "type": "string" },
+          "userName": { "type": "string" },
+          "userEmail": { "type": "string", "format": "email" },
+          "status": { "type": "string", "enum": ["pending", "approved", "denied"] },
+          "createdAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "userId", "status", "createdAt"]
+      }
   },
   "auth": {
-    "providers": [
-      "password",
-      "google.com"
-    ]
+    "providers": ["password", "google.com"]
   },
   "firestore": {
     "structure": [
       {
         "path": "/users/{userId}",
-        "definition": {
-          "entityName": "User",
-          "schema": {
-            "$ref": "#/backend/entities/User"
-          },
-          "description": "Stores user data. Path-based ownership: only the user (or an admin/developer) can access their own document.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user."
-            }
-          ]
-        }
+        "definition": { "entityName": "User", "schema": { "$ref": "#/backend/entities/User" } }
       },
       {
         "path": "/roles/{roleId}",
-        "definition": {
-          "entityName": "Role",
-          "schema": {
-            "$ref": "#/backend/entities/Role"
-          },
-          "description": "Stores role definitions. Admin/Developer access required to manage roles.",
-          "params": [
-            {
-              "name": "roleId",
-              "description": "The unique identifier of the role."
-            }
-          ]
-        }
+        "definition": { "entityName": "Role", "schema": { "$ref": "#/backend/entities/Role" } }
       },
       {
-        "path": "/warehouses/{warehouseId}",
-        "definition": {
-          "entityName": "Warehouse",
-          "schema": {
-            "$ref": "#/backend/entities/Warehouse"
-          },
-          "description": "Stores warehouse information. Admin/Developer access required.",
-          "params": [
-            {
-              "name": "warehouseId",
-              "description": "The unique identifier for the warehouse."
-            }
-          ]
-        }
+        "path": "/companies/{companyId}",
+        "definition": { "entityName": "Company", "schema": { "$ref": "#/backend/entities/Company" } }
+      },
+       {
+        "path": "/companies/{companyId}/joinRequests/{requestId}",
+        "definition": { "entityName": "JoinRequest", "schema": { "$ref": "#/backend/entities/JoinRequest" } }
+      },
+      {
+        "path": "/companies/{companyId}/products/{productId}",
+        "definition": { "entityName": "Product", "schema": { "$ref": "#/backend/entities/Product" } }
+      },
+      {
+        "path": "/companies/{companyId}/warehouses/{warehouseId}",
+        "definition": { "entityName": "Warehouse", "schema": { "$ref": "#/backend/entities/Warehouse" } }
       }
     ]
   }

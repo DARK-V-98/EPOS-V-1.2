@@ -13,10 +13,8 @@ import {
   Chrome
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useAuth, useFirestore } from '@/firebase';
-import { initiateEmailSignIn, initiateGoogleSignIn } from '@/firebase/non-blocking-login';
+import { useAuth, useFirestore, initiateEmailSignIn, initiateGoogleSignIn, setDocumentNonBlocking } from '@/firebase';
 import { getDoc, doc } from 'firebase/firestore';
-import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -26,6 +24,12 @@ export default function Login() {
   const auth = useAuth();
   const firestore = useFirestore();
 
+  const handleSuccessfulLogin = (user) => {
+    const userRef = doc(firestore, "users", user.uid);
+    setDocumentNonBlocking(userRef, { lastLogin: new Date().toISOString() }, { merge: true });
+    router.push('/home');
+  }
+
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -34,11 +38,14 @@ export default function Login() {
     const password = formData.get('password') as string;
 
     try {
-      await initiateEmailSignIn(auth, email, password);
-      // Non-blocking, will be redirected by auth listener in layout or provider
+      const userCredential = await initiateEmailSignIn(auth, email, password);
+      if (userCredential && userCredential.user) {
+        handleSuccessfulLogin(userCredential.user);
+      }
     } catch (error) {
       console.error(error);
       setIsLoading(false);
+      alert(`Login Failed: ${error.message}`);
     }
   };
   
@@ -52,27 +59,30 @@ export default function Login() {
         const userDoc = await getDoc(userRef);
 
         if (!userDoc.exists()) {
+          const [firstName, ...lastNameParts] = (user.displayName || '').split(' ');
+          const lastName = lastNameParts.join(' ');
           // New user, create a document
           await setDocumentNonBlocking(userRef, {
             id: user.uid,
-            firstName: user.displayName?.split(' ')[0] || '',
-            lastName: user.displayName?.split(' ')[1] || '',
+            firstName: firstName || '',
+            lastName: lastName || '',
             email: user.email,
-            roleId: 'user', // Default role
+            roleId: 'user', // Default role for all new users
             createdAt: new Date().toISOString(),
             lastLogin: new Date().toISOString(),
           }, { merge: true });
         } else {
-           // Existing user, update last login
+           // Existing user, just update last login
            await setDocumentNonBlocking(userRef, {
             lastLogin: new Date().toISOString(),
            }, { merge: true });
         }
-        router.push('/dashboard');
+        router.push('/home');
       }
     } catch (error) {
       console.error("Google sign-in error", error);
       setIsGoogleLoading(false);
+      alert(`Google Sign-In Failed: ${error.message}`);
     }
   };
 

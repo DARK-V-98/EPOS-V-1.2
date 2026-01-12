@@ -16,6 +16,7 @@ import { LowStockAlert } from '@/components/dashboard/LowStockAlert';
 import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 const stats = [
   {
@@ -76,6 +77,7 @@ interface UserProfile {
 export default function Dashboard() {
   const { user } = useUser();
   const firestore = useFirestore();
+  const router = useRouter();
   const [greeting, setGreeting] = useState('');
 
   const userDocRef = useMemoFirebase(() => {
@@ -84,6 +86,13 @@ export default function Dashboard() {
   }, [firestore, user]);
 
   const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userDocRef);
+  
+   useEffect(() => {
+    if (!isProfileLoading && user && !userProfile?.companyId) {
+      router.push('/home');
+    }
+  }, [isProfileLoading, user, userProfile, router]);
+
 
   useEffect(() => {
     const getGreeting = () => {

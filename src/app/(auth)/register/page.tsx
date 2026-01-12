@@ -10,30 +10,16 @@ import {
   EyeOff, 
   ArrowRight,
   User,
-  Building,
-  Phone,
-  Globe,
   Check
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/firebase';
-import { initiateEmailSignUp } from '@/firebase/non-blocking-login';
-import { setDoc, doc } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
-import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-
-const plans = [
-  { id: 'free', name: 'Free', description: 'Basic features for small businesses' },
-  { id: 'trial', name: 'Pro Trial', description: '14 days free trial of Pro features' },
-  { id: 'monthly', name: 'Monthly Paid', description: 'Full features on a monthly basis' },
-  { id: 'yearly', name: 'Yearly Paid', description: 'Full features with a discount' },
-  { id: 'lifetime', name: 'Lifetime Paid', description: 'One-time payment for lifetime access' },
-];
+import { useAuth, useFirestore, initiateEmailSignUp, setDocumentNonBlocking } from '@/firebase';
+import { doc } from 'firebase/firestore';
 
 export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState('trial');
   const router = useRouter();
   const auth = useAuth();
   const firestore = useFirestore();
@@ -44,39 +30,44 @@ export default function Register() {
     const formData = new FormData(e.currentTarget);
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
-    const businessName = formData.get('businessName') as string;
-    const ownerName = formData.get('ownerName') as string;
-    const phone = formData.get('phone') as string;
-    const country = formData.get('country') as string;
-    const plan = selectedPlan;
+    const confirmPassword = formData.get('confirmPassword') as string;
+    const fullName = formData.get('fullName') as string;
+
+    if (password !== confirmPassword) {
+        // You would typically use a toast or form error here
+        alert("Passwords do not match.");
+        setIsLoading(false);
+        return;
+    }
     
     try {
       const userCredential = await initiateEmailSignUp(auth, email, password);
       
       if (userCredential && userCredential.user) {
         const user = userCredential.user;
+        const [firstName, ...lastNameParts] = fullName.split(' ');
+        const lastName = lastNameParts.join(' ');
+        
         const userRef = doc(firestore, "users", user.uid);
         
         await setDocumentNonBlocking(userRef, {
           id: user.uid,
-          firstName: ownerName.split(' ')[0],
-          lastName: ownerName.split(' ')[1] || '',
+          firstName: firstName || '',
+          lastName: lastName || '',
           email: user.email,
-          businessName,
-          phone,
-          country,
-          plan,
-          roleId: 'admin', // Default role for new registration
+          roleId: 'user', // All new users are 'user' by default
           createdAt: new Date().toISOString(),
           lastLogin: new Date().toISOString(),
         }, { merge: true });
         
-        router.push('/dashboard');
+        router.push('/home');
       }
       
     } catch (error) {
       console.error(error);
       setIsLoading(false);
+       // You would typically use a toast to show the error
+      alert(`Registration failed: ${error.message}`);
     }
   };
 
@@ -104,10 +95,10 @@ export default function Register() {
             
             <div className="space-y-4">
               {[
-                'Free 14-day Pro trial',
-                'No credit card required',
-                'Cancel anytime',
-                'Full feature access',
+                'Multi-tenant architecture',
+                'Role-based access control',
+                'Secure data isolation',
+                'Scalable and reliable',
               ].map((feature, index) => (
                 <motion.div
                   key={feature}
@@ -159,34 +150,19 @@ export default function Register() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Business Name</label>
-                <div className="relative">
-                  <Building className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <input
-                    type="text"
-                    name="businessName"
-                    placeholder="Your Company"
-                    className="input-field pl-12"
-                    required
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Your Name</label>
+                <label className="block text-sm font-medium mb-2">Full Name</label>
                 <div className="relative">
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <input
                     type="text"
-                    name="ownerName"
+                    name="fullName"
                     placeholder="John Doe"
                     className="input-field pl-12"
                     required
                   />
                 </div>
               </div>
-            </div>
 
             <div>
               <label className="block text-sm font-medium mb-2">Email Address</label>
@@ -199,41 +175,6 @@ export default function Register() {
                   className="input-field pl-12"
                   required
                 />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Phone Number</label>
-                <div className="relative">
-                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <input
-                    type="tel"
-                    name="phone"
-                    placeholder="+1 (555) 000-0000"
-                    className="input-field pl-12"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Country</label>
-                <div className="relative">
-                  <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <select name="country" className="input-field pl-12 appearance-none">
-                    <option>United States</option>
-                    <option>United Kingdom</option>
-                    <option>Canada</option>
-                    <option>Australia</option>
-                    <option>Germany</option>
-                    <option>France</option>
-                    <option>Sri Lanka</option>
-                    <option>India</option>
-                    <option>Singapore</option>
-                    <option>Malaysia</option>
-                    <option>Japan</option>
-                    <option>South Korea</option>
-                  </select>
-                </div>
               </div>
             </div>
 
@@ -257,37 +198,29 @@ export default function Register() {
                 </button>
               </div>
             </div>
-
-            {/* Plan Selection */}
-            <div>
-              <label className="block text-sm font-medium mb-3">Select Plan</label>
-              <div className="grid grid-cols-2 gap-3">
-                {plans.map((plan) => (
-                  <button
-                    key={plan.id}
-                    type="button"
-                    onClick={() => setSelectedPlan(plan.id)}
-                    className={`p-4 rounded-xl border-2 text-left transition-all ${
-                      selectedPlan === plan.id
-                        ? 'border-primary bg-primary/5'
-                        : 'border-border hover:border-primary/50'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-semibold">{plan.name}</span>
-                      {selectedPlan === plan.id && (
-                        <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                          <Check className="w-3 h-3 text-primary-foreground" />
-                        </div>
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground">{plan.description}</p>
-                  </button>
-                ))}
+            
+             <div>
+              <label className="block text-sm font-medium mb-2">Confirm Password</label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  name="confirmPassword"
+                  placeholder="Confirm your password"
+                  className="input-field pl-12 pr-12"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
             </div>
 
-            <div className="flex items-start gap-2">
+            <div className="flex items-start gap-2 pt-4">
               <input
                 type="checkbox"
                 id="terms"
