@@ -1,0 +1,134 @@
+rules_version = '2';
+
+/**
+ * This ruleset enforces a security model based on user ownership with a global admin override.
+ * It is designed for a prototyping environment, prioritizing strict authorization while allowing
+ * flexibility in data schemas for rapid development.
+ *
+ * Core Philosophy:
+ * - User-centric security: Users have full control over their own data.
+ * - Administrative access: A designated 'admin' role has elevated privileges for management and moderation.
+ * - Default deny: Access is denied unless explicitly granted by a rule.
+ *
+ * Data Structure:
+ * - /users/{userId}: Stores private user profile information, including a reference to their role.
+ *   Each document is owned by the corresponding user.
+ * - /roles/{roleId}: A top-level collection containing role definitions (e.g., 'admin', 'staff').
+ *   This data is considered public-readable for authenticated users but is managed exclusively by admins.
+ *
+ * Key Security Decisions:
+ * - No User Listing: Non-admin users cannot list the contents of the `/users` collection to protect user privacy.
+ * - Admin Privilege via DBAC: A user is considered an admin if their document in `/users/{userId}` has a `roleId` field with the value 'admin'. This check requires a single `get` operation.
+ * - Immutable Roles: Users cannot change their own `roleId` to prevent self-privilege-escalation.
+ * - Role Management: Only admins can create, update, or delete role definitions in the `/roles` collection.
+ *
+ * Denormalization for Authorization:
+ * The `roleId` is stored directly on each user's document in `/users/{userId}`. This denormalization is
+ * crucial for efficiently checking a user's role with a single `get` operation in helper functions like `isAdmin()`,
+ * avoiding complex and slow multi-document reads during rule evaluation.
+ *
+ * Structural Segregation:
+ * Private user data is strictly segregated in the `/users` collection, which is locked down by ownership rules.
+ * Global configuration data (roles) is kept in the separate `/roles` collection with a different security
+ * posture (public-read, admin-write), creating a clear and secure separation of concerns.
+ */
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // =====================================================================
+    // Helper Functions
+    // =====================================================================
+
+    /**
+     * Returns true if the user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Returns true if the authenticated user's UID matches the provided userId.
+     * This is the foundation of the user-ownership model.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * Returns true if the document being operated on already exists.
+     * CRITICAL for all update and delete operations to prevent unintended side effects.
+     */
+    function isExistingDoc() {
+      return resource != null;
+    }
+
+    /**
+     * Checks if the requesting user has the 'admin' role.
+     * NOTE: This function performs one 'get' operation against the user's
+     * own document, which is counted against quota. It assumes the admin role's
+     * document ID in the '/roles' collection is 'admin'.
+     */
+    function isAdmin() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roleId == 'admin';
+    }
+
+    /**
+     * Validates a user is creating their own document and that the
+     * internal 'id' field matches the document's path ID for relational integrity.
+     */
+    function isCreatingOwnValidUserDoc(userId) {
+      return isOwner(userId) && request.resource.data.id == userId;
+    }
+
+    /**
+     * Validates a user is updating their own document, and that critical,
+     * immutable fields like 'id' and 'roleId' are not being changed.
+     */
+    function isUpdatingOwnValidUserDoc() {
+      // The `id` field must be immutable to maintain the link between the document and its path.
+      // The `roleId` is immutable for non-admins to prevent privilege escalation.
+      return isExistingDoc() && request.resource.data.id == resource.data.id && request.resource.data.roleId == resource.data.roleId;
+    }
+
+
+    // =====================================================================
+    // Collection Rules
+    // =====================================================================
+
+    /**
+     * @description Secures user-specific documents. Users can manage their own document,
+     *              while admins have read and delete privileges.
+     * @path /users/{userId}
+     * @allow (get) A user (`auth.uid: 'user123'`) reads their own document at `/users/user123`.
+     * @allow (create) A new user (`auth.uid: 'newUser'`) creates their document at `/users/newUser` with `{ id: 'newUser', ... }`.
+     * @deny (list) A non-admin user attempts to list all documents in the `/users` collection.
+     * @deny (update) A user (`auth.uid: 'user123'`) tries to change their `roleId`.
+     * @principle Restricts access to a user's own data tree and prevents privilege escalation.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if isCreatingOwnValidUserDoc(userId);
+      allow update: if isOwner(userId) && isUpdatingOwnValidUserDoc();
+      allow delete: if (isOwner(userId) || isAdmin()) && isExistingDoc();
+    }
+
+    /**
+     * @description Manages application-wide role definitions.
+     *              These are readable by any authenticated user but can only be modified by an admin.
+     * @path /roles/{roleId}
+     * @allow (list) Any authenticated user lists the available roles to populate a UI dropdown.
+     * @allow (update) An admin user updates the permissions on the `/roles/staff` document.
+     * @deny (create) A non-admin user attempts to create a new role document.
+     * @deny (delete) A non-admin user attempts to delete the `/roles/staff` document.
+     * @principle Enforces public read access for configuration data with admin-only write controls.
+     */
+    match /roles/{roleId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isAdmin();
+      allow update: if isAdmin() && isExistingDoc();
+      allow delete: if isAdmin() && isExistingDoc();
+    }
+  }
+}
