@@ -7,13 +7,15 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   useSidebar,
+  SidebarGroup,
+  SidebarGroupLabel,
 } from '@/components/ui/sidebar';
 import {
   BarChart,
   Boxes,
   CreditCard,
   Folder,
-  LayoutDashboard,
+  LayoutGrid,
   Settings,
   Shield,
   ShoppingBag,
@@ -22,70 +24,48 @@ import {
   Users,
   Users2,
   Warehouse,
+  Bell,
+  Wallet,
+  FileText,
+  LifeBuoy
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown } from 'lucide-react';
+import { Badge } from './ui/badge';
 
 const menuItems = [
   {
     href: '/dashboard',
     label: 'Dashboard',
-    icon: LayoutDashboard,
+    icon: LayoutGrid,
   },
-  {
-    label: 'Inventory',
-    icon: Boxes,
-    subItems: [
-      { href: '/dashboard/products', label: 'Products' },
-      { href: '/dashboard/categories', label: 'Categories' },
-      { href: '/dashboard/warehouses', label: 'Warehouses' },
-    ],
-  },
-  {
-    label: 'Orders',
-    icon: ShoppingCart,
-    subItems: [
-      { href: '/dashboard/purchases', label: 'Purchases' },
-      { href: '/pos', label: 'Sales / POS' },
-    ],
-  },
-  {
-    label: 'People',
-    icon: Users,
-    subItems: [
-      { href: '/dashboard/customers', label: 'Customers' },
-      { href: '/dashboard/suppliers', label: 'Suppliers' },
-    ],
-  },
-  {
-    href: '/dashboard/reports',
-    label: 'Reports',
-    icon: BarChart,
-  },
-  {
-    href: '/dashboard/users',
-    label: 'Users & Roles',
-    icon: Users2,
-  },
+  { href: '/dashboard/products', label: 'Products', icon: Boxes },
+  { href: '/dashboard/warehouses', label: 'Warehouses', icon: Warehouse },
+  { href: '/dashboard/suppliers', label: 'Suppliers', icon: Truck },
+  { href: '/dashboard/purchases', label: 'Purchases', icon: ShoppingCart, subItems: [{href: "#", label: 'sub'}] },
+  { href: '/pos', label: 'Sales', icon: Wallet, subItems: [{href: "#", label: 'sub'}]  },
+  { href: '/dashboard/customers', label: 'Customers', icon: Users },
+  { href: '/dashboard/reports', label: 'Reports', icon: BarChart, pro: true },
+  { href: '/dashboard/notifications', label: 'Notifications', icon: Bell, count: 3 },
 ];
 
 const settingsItems = [
-  {
-    href: '/dashboard/settings',
-    label: 'Settings',
-    icon: Settings,
-  },
-  {
+   {
     href: '/dashboard/subscription',
     label: 'Subscription',
     icon: CreditCard,
   },
   {
     href: '/dashboard/security',
-    label: 'Security & Logs',
+    label: 'Security',
     icon: Shield,
+  },
+  {
+    href: '/dashboard/settings',
+    label: 'Settings',
+    icon: Settings,
   },
 ];
 
@@ -93,62 +73,23 @@ export function DashboardNav() {
   const pathname = usePathname();
   const { state } = useSidebar();
 
-  const isSubItemActive = (subItems: { href: string }[]) => {
+  const isSubItemActive = (subItems?: { href: string }[]) => {
+    if (!subItems) return false;
     return subItems.some((item) => item.href === pathname);
   };
-
-  if (state === 'collapsed') {
-    return (
-      <>
-        <SidebarMenu>
-          {[...menuItems, ...settingsItems].map((item, index) =>
-            item.subItems ? (
-              <SidebarMenuItem key={index}>
-                <SidebarMenuButton
-                  tooltip={{ children: item.label, side: 'right' }}
-                  isActive={isSubItemActive(item.subItems)}
-                  asChild
-                >
-                  <Link href={item.subItems[0].href}>
-                    <item.icon />
-                    <span className="sr-only">{item.label}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ) : (
-              <SidebarMenuItem key={index}>
-                <SidebarMenuButton
-                  tooltip={{ children: item.label, side: 'right' }}
-                  isActive={pathname === item.href}
-                  asChild
-                >
-                  <Link href={item.href!}>
-                    <item.icon />
-                    <span className="sr-only">{item.label}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )
-          )}
-        </SidebarMenu>
-      </>
-    );
-  }
-
-  return (
-    <>
-      <SidebarMenu className="flex-grow">
-        {menuItems.map((item, index) =>
-          item.subItems ? (
-            <Collapsible key={index} defaultOpen={isSubItemActive(item.subItems)}>
+  
+  const renderMenuItem = (item: any) => {
+     if (item.subItems) {
+      return (
+         <Collapsible key={item.href} defaultOpen={isSubItemActive(item.subItems)}>
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton
                     className="w-full justify-between"
-                    isActive={isSubItemActive(item.subItems)}
+                    isActive={pathname === item.href || isSubItemActive(item.subItems)}
                   >
-                    <div className="flex items-center gap-2">
-                      <item.icon />
+                    <div className="flex items-center gap-3">
+                      <item.icon className="h-5 w-5" />
                       <span>{item.label}</span>
                     </div>
                     <ChevronDown className="h-4 w-4 transition-transform [&[data-state=open]]:rotate-180" />
@@ -157,7 +98,7 @@ export function DashboardNav() {
               </SidebarMenuItem>
               <CollapsibleContent>
                 <SidebarMenuSub>
-                  {item.subItems.map((subItem, subIndex) => (
+                  {item.subItems.map((subItem: any, subIndex: number) => (
                     <SidebarMenuItem key={subIndex}>
                       <SidebarMenuSubButton isActive={pathname === subItem.href} asChild>
                         <Link href={subItem.href}>{subItem.label}</Link>
@@ -167,31 +108,62 @@ export function DashboardNav() {
                 </SidebarMenuSub>
               </CollapsibleContent>
             </Collapsible>
-          ) : (
-            <SidebarMenuItem key={index}>
-              <SidebarMenuButton isActive={pathname === item.href} asChild>
-                <Link href={item.href!}>
-                  <item.icon />
-                  <span>{item.label}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          )
-        )}
-      </SidebarMenu>
+      )
+    }
 
+    return (
+       <SidebarMenuItem key={item.href}>
+        <SidebarMenuButton isActive={pathname === item.href} asChild>
+          <Link href={item.href!}>
+            <div className="flex items-center gap-3">
+              <item.icon className="h-5 w-5" />
+              <span>{item.label}</span>
+            </div>
+             {item.pro && <Badge variant="destructive" className="ml-auto bg-red-100 text-red-600">Pro</Badge>}
+             {item.count && <Badge variant="secondary" className="ml-auto">{item.count}</Badge>}
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    )
+  }
+
+  if (state === 'collapsed') {
+    // Simplified view for collapsed state
+    return (
       <SidebarMenu>
-        {settingsItems.map((item, index) => (
+        {[...menuItems, ...settingsItems].map((item, index) => (
           <SidebarMenuItem key={index}>
-            <SidebarMenuButton isActive={pathname === item.href} asChild>
-              <Link href={item.href}>
+            <SidebarMenuButton
+              tooltip={{ children: item.label, side: 'right' }}
+              isActive={pathname === item.href || isSubItemActive(item.subItems)}
+              asChild
+            >
+              <Link href={item.subItems ? item.subItems[0].href : item.href!}>
                 <item.icon />
-                <span>{item.label}</span>
+                <span className="sr-only">{item.label}</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         ))}
       </SidebarMenu>
-    </>
+    );
+  }
+
+  return (
+    <div className="flex flex-col h-full">
+      <SidebarGroup className="flex-grow">
+        <SidebarGroupLabel>MAIN MENU</SidebarGroupLabel>
+        <SidebarMenu>
+          {menuItems.map(renderMenuItem)}
+        </SidebarMenu>
+      </SidebarGroup>
+
+      <SidebarGroup>
+         <SidebarGroupLabel>SETTINGS</SidebarGroupLabel>
+        <SidebarMenu>
+          {settingsItems.map(renderMenuItem)}
+        </SidebarMenu>
+      </SidebarGroup>
+    </div>
   );
 }

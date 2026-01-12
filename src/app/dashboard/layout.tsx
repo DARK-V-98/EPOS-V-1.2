@@ -15,11 +15,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
-        <Sidebar>
+        <Sidebar variant="inset" collapsible="icon">
           <SidebarHeader>
             <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
-              <Logo className="h-6 w-6" />
-              <span className="font-headline text-lg">Inventory Ace</span>
+              <Logo className="h-8 w-8 text-primary" />
+              <div className='flex flex-col'>
+                <span className="font-headline text-lg">StockFlow</span>
+                <span className='text-xs text-muted-foreground'>Inventory Pro</span>
+              </div>
             </Link>
           </SidebarHeader>
           <SidebarContent className="p-2">

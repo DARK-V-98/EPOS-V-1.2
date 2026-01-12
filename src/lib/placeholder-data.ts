@@ -7,44 +7,76 @@ import {
   CreditCard,
   Truck,
   UserPlus,
+  TrendingUp,
+  TrendingDown,
+  Warehouse,
+  AlertTriangle,
 } from 'lucide-react';
 
 export const dashboardCards = [
   {
     title: 'Total Products',
-    value: '1,254',
+    subtitle: 'vs last month',
+    value: '2,847',
     change: '+12.5%',
     icon: Boxes,
+    color: 'red',
   },
   {
     title: 'Stock Value',
-    value: '$250,600.50',
+    subtitle: 'vs last month',
+    value: '$1.24M',
     change: '+8.2%',
     icon: DollarSign,
+    color: 'green',
   },
   {
-    title: 'Low Stock Alerts',
-    value: '15',
-    change: '+3 since last week',
+    title: 'Today\'s Sales',
+    subtitle: 'vs yesterday',
+    value: '$12,845',
+    change: '+23.1%',
     icon: ShoppingCart,
-    variant: 'destructive' as const,
+    color: 'red',
   },
   {
-    title: 'Total Sales (Month)',
-    value: '$45,231.89',
-    change: '+20.1% from last month',
-    icon: DollarSign,
+    title: 'Monthly Profit',
+    subtitle: 'vs last month',
+    value: '$89,420',
+    change: '+15.8%',
+    icon: TrendingUp,
+    color: 'green',
+  },
+  {
+    title: 'Low Stock Items',
+    subtitle: 'items need restock',
+    value: '23',
+    change: '-5%',
+    icon: AlertTriangle,
+    color: 'yellow',
+  },
+  {
+    title: 'Warehouses',
+    subtitle: '3 active transfers',
+    value: '5',
+    change: '',
+    icon: Warehouse,
+    color: 'gray',
   },
 ];
 
 export const salesData = [
-  { name: 'Jan', sales: 4000 },
-  { name: 'Feb', sales: 3000 },
-  { name: 'Mar', sales: 5000 },
-  { name: 'Apr', sales: 4500 },
-  { name: 'May', sales: 6000 },
-  { name: 'Jun', sales: 5500 },
-  { name: 'Jul', sales: 7000 },
+  { name: 'Jan', sales: 4000, purchases: 2400 },
+  { name: 'Feb', sales: 3000, purchases: 1398 },
+  { name: 'Mar', sales: 5000, purchases: 3800 },
+  { name: 'Apr', sales: 4500, purchases: 3908 },
+  { name: 'May', sales: 6000, purchases: 4800 },
+  { name: 'Jun', sales: 5500, purchases: 3800 },
+  { name: 'Jul', sales: 7000, purchases: 4300 },
+  { name: 'Aug', sales: 6500, purchases: 5400 },
+  { name: 'Sep', sales: 7200, purchases: 6100 },
+  { name: 'Oct', sales: 7800, purchases: 6500 },
+  { name: 'Nov', sales: 8500, purchases: 7000 },
+  { name: 'Dec', sales: 9200, purchases: 8000 },
 ];
 
 export const recentActivities = [
@@ -143,4 +175,11 @@ export const securityLogs = [
     { id: 3, timestamp: '2024-07-29 09:30:55', user: 'Jane Smith', ip: '10.0.0.52', action: 'Logged in successfully.' },
     { id: 4, timestamp: '2024-07-29 08:00:12', user: 'Mary Johnson', ip: '203.0.113.25', action: 'Failed login attempt.' },
     { id: 5, timestamp: '2024-07-28 17:01:03', user: 'Peter Jones', ip: '172.16.10.3', action: 'Updated warehouse stock for WH003.' },
+];
+
+export const lowStockAlerts = [
+  { id: '1', name: 'Samsung Galaxy S24', sku: 'SAM-S24-128', left: 5, min: 20 },
+  { id: '2', name: 'Google Pixel 8 Pro', sku: 'GOO-PX8P-256', left: 3, min: 15 },
+  { id: '3', name: 'Sony WH-1000XM5', sku: 'SNY-XM5-BK', left: 8, min: 25 },
+  { id: '4', name: 'iPad Pro 12.9"', sku: 'APL-IPP12-256', left: 2, min: 10 },
 ];
