@@ -226,6 +226,12 @@ export default function Register() {
                     <option>Australia</option>
                     <option>Germany</option>
                     <option>France</option>
+                    <option>Sri Lanka</option>
+                    <option>India</option>
+                    <option>Singapore</option>
+                    <option>Malaysia</option>
+                    <option>Japan</option>
+                    <option>South Korea</option>
                   </select>
                 </div>
               </div>
