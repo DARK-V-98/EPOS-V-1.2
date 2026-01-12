@@ -1,47 +1,56 @@
-'use client';
-
+'use client'
+import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
+import { ArrowLeft, Sparkles } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
-export default function ForgotPasswordPage() {
-  const { toast } = useToast();
-  const handleReset = (e: React.FormEvent) => {
-    e.preventDefault();
-    toast({
-      title: 'Password Reset Email Sent',
-      description: 'Please check your inbox for instructions to reset your password.',
-    });
-  };
-
+export default function ForgotPassword() {
+  const router = useRouter();
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-2xl font-headline">Forgot Password</CardTitle>
-        <CardDescription>
-          Enter your email and we will send you instructions to reset your password.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleReset} className="grid gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" placeholder="m@example.com" required />
+    <div className="min-h-screen flex items-center justify-center p-8">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center max-w-md"
+      >
+        {/* Logo */}
+        <Link href="/" className="inline-flex items-center gap-3 mb-8">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
+            <Sparkles className="w-6 h-6 text-primary-foreground" />
           </div>
-          <Button type="submit" className="w-full">
-            Send Reset Link
-          </Button>
+        </Link>
+
+        <h1 className="text-3xl font-display font-bold mb-4">Forgot Password</h1>
+        <p className="text-muted-foreground mb-8">
+          Enter your email to receive a password reset link.
+        </p>
+
+        <form className="space-y-4">
+           <div>
+              <label className="block text-sm font-medium mb-2 text-left">Email Address</label>
+              <input
+                type="email"
+                placeholder="Enter your email"
+                className="input-field"
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              className="btn-primary w-full"
+            >
+              Send Reset Link
+            </button>
         </form>
-        <div className="mt-4 text-center text-sm">
-          Remembered your password?{' '}
-          <Link href="/login" className="underline">
-            Login
-          </Link>
-        </div>
-      </CardContent>
-    </Card>
+        
+        <button 
+          onClick={() => router.back()} 
+          className="btn-ghost mt-4"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Login</span>
+        </button>
+      </motion.div>
+    </div>
   );
-}
+};

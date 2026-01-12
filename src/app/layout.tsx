@@ -1,15 +1,19 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
-import { Inter, Lexend } from 'next/font/google';
+import { Inter, Space_Grotesk } from 'next/font/google';
 import { cn } from '@/lib/utils';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { Toaster as SonnerToaster } from '@/components/ui/sonner';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import Providers from './providers';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-body' });
-const lexend = Lexend({ subsets: ['latin'], variable: '--font-headline' });
+const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
+const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-display' });
 
 export const metadata: Metadata = {
-  title: 'Inventory Ace',
-  description: 'Manage your inventory with ease.',
+  title: 'StockFlow',
+  description: 'Inventory Management System',
 };
 
 export default function RootLayout({
@@ -19,9 +23,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={cn('font-body antialiased', inter.variable, lexend.variable)}>
-        {children}
-        <Toaster />
+      <body className={cn('min-h-screen bg-background font-sans antialiased', inter.variable, spaceGrotesk.variable)}>
+        <Providers>
+            {children}
+            <Toaster />
+            <SonnerToaster />
+        </Providers>
       </body>
     </html>
   );
